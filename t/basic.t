@@ -5,10 +5,9 @@ any '/' => 'main';
 use Test::More;
 use Test::Mojo;
 
-use Test::Mojo::Phantom;
+use Test::Mojo::Phantom -apply;
 
 my $t = Test::Mojo->new;
-my $phantom = \&Test::Mojo::Phantom::phantom;
 
 ok 1, 'from mojo';
 
@@ -23,7 +22,7 @@ my $js = <<'JS';
   test(['is', text, 'Goodbye', 'code evaluation']);
 JS
 
-$t->$phantom('main', $js);
+$t->phantom_ok('main', $js, {plan => 3});
 
 done_testing;
 

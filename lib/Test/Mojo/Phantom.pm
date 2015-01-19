@@ -11,6 +11,11 @@ use Mojo::JSON 'j';
 
 use constant DEBUG => $ENV{TEST_MOJO_PHANTOM_DEBUG};
 
+sub import {
+  my $class = shift;
+  Role::Tiny->apply_roles_to_package('Test::Mojo', 'Test::Mojo::Phantom::Role') if $_[0] eq '-apply';
+}
+
 sub phantom_raw {
   my $cb = pop;
   my ($js, $read) = @_;
@@ -43,7 +48,7 @@ sub phantom {
   }
 
   my $sep = '--__TEST_MOJO_PHANTOM__--';
-  
+
   my $lib = '';
 
   $lib .= sprintf <<'  LIB', $sep;
@@ -95,6 +100,22 @@ sub phantom {
   Mojo::IOLoop->delay(sub{
     phantom_raw($lib, $read, shift->begin);
   })->wait;
+}
+
+package Test::Mojo::Phantom::Role;
+
+use Role::Tiny;
+use Test::More ();
+
+sub phantom_ok {
+  my @args = @_;
+  my $opts = ref $args[-1] ? pop @args : {};
+  my $name = $opts->{name} || 'phantom';
+  local $Test::Builder::Level = $Test::Builder::Level + 1;
+  Test::More::subtest($opts->{name} || 'phantom' => sub {
+    Test::More::plan(tests => $opts->{plan}) if $opts->{plan};
+    Test::Mojo::Phantom::phantom(@args);
+  });
 }
 
 1;

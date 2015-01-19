@@ -3,9 +3,7 @@ use Mojolicious::Lite;
 use Test::More;
 use Test::Mojo;
 
-use Test::Mojo::Phantom;
-
-my $phantom = \&Test::Mojo::Phantom::phantom;
+use Test::Mojo::Phantom -apply;
 
 any '/set' => sub {
   my $c = shift;
@@ -20,7 +18,7 @@ $t->get_ok('/set')
   ->status_is(200)
   ->content_is('set');
 
-$t->$phantom('get', <<'JS');
+$t->phantom_ok('get', <<'JS');
   var text = page.evaluate(function(){
     return document.getElementsByTagName('p')[0].innerHTML;
   });
