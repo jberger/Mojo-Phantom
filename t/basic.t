@@ -22,7 +22,7 @@ my $js = <<'JS';
   test(['is', text, 'Goodbye', 'code evaluation']);
 JS
 
-$t->phantom_ok('main', $js);
+$t->phantom_ok('main', $js, {plan => 3});
 
 done_testing;
 

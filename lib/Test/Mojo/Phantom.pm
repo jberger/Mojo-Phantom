@@ -105,7 +105,7 @@ sub phantom {
 package Test::Mojo::Phantom::Role;
 
 use Role::Tiny;
-use Test::More ();
+use Test::More 1.301001_097 ();
 use Test::Stream::Toolset;
 
 sub phantom_ok {
