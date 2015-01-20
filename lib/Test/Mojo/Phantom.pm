@@ -106,10 +106,39 @@ package Test::Mojo::Phantom::Role;
 
 use Role::Tiny;
 use Test::More ();
+use Test::Stream::Toolset;
 
 sub phantom_ok {
-  local $Test::Builder::Level = $Test::Builder::Level + 1;
-  Test::Mojo::Phantom::phantom(@_);
+  my $t = shift;
+  my $opts = ref $_[-1] ? pop : {};
+  my $name = $opts->{name} || 'all phantom tests successful';
+  my $ctx = Test::Stream::Toolset::context();
+  my $st = do {
+    $ctx->subtest_start($name);
+    my $subtest_ctx = Test::Stream::Toolset::context();
+    $subtest_ctx->plan($opts->{plan}) if $opts->{plan};
+    Test::Mojo::Phantom::phantom($t, @_);
+    $ctx->subtest_stop($name);
+  };
+
+  my $e = $ctx->subtest(
+    # Stuff from ok (most of this gets initialized inside)
+    undef, # real_bool, gets set properly by initializer
+    $st->{name}, # name
+    undef, # diag
+    undef, # bool
+    undef, # level
+
+    # Subtest specific stuff
+    $st->{state},
+    $st->{events},
+    $st->{exception},
+    $st->{early_return},
+    $st->{delayed},
+    $st->{instant},
+  );
+
+  return $t->success($e->bool);
 }
 
 1;
