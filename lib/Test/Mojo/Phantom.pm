@@ -108,14 +108,8 @@ use Role::Tiny;
 use Test::More ();
 
 sub phantom_ok {
-  my @args = @_;
-  my $opts = ref $args[-1] ? pop @args : {};
-  my $name = $opts->{name} || 'phantom';
   local $Test::Builder::Level = $Test::Builder::Level + 1;
-  Test::More::subtest($opts->{name} || 'phantom' => sub {
-    Test::More::plan(tests => $opts->{plan}) if $opts->{plan};
-    Test::Mojo::Phantom::phantom(@args);
-  });
+  Test::Mojo::Phantom::phantom(@_);
 }
 
 1;
