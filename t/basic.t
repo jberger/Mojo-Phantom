@@ -5,7 +5,7 @@ any '/' => 'main';
 use Test::More;
 use Test::Mojo;
 
-use Test::Mojo::Phantom -apply;
+use Test::Mojo::Phantom;
 
 my $t = Test::Mojo->new;
 

@@ -3,7 +3,7 @@ use Mojolicious::Lite;
 use Test::More;
 use Test::Mojo;
 
-use Test::Mojo::Phantom -apply;
+use Test::Mojo::Phantom;
 
 any '/set' => sub {
   my $c = shift;
