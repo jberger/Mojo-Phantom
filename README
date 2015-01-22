@@ -1,3 +1,10 @@
 An attempt to use PhantomJS to test client-side code in Mojolicious apps
 
+Design goals
+
+(1) have the test script not depend on a running mojolicious server (ie start one, like Test::Mojo scripts can), whether that be from a js or perl file doesn't matter
+(2) emit tap in a normal way in a manner that prove -l can collect tests
+(3) not have to reimplement a large chunk of the test methods in either Test::More or Test::Mojo
+  note: if tape has functionality like Test::* (that emits tap and can be collected subject to (1) and (2)) then that is sufficient
+
 Released under the same license and terms as Perl itself. Copyright (c) 2015 Joel Berger
