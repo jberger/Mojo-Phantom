@@ -8,6 +8,7 @@ use Mojo::Util;
 use Mojo::IOLoop;
 use Mojo::IOLoop::Stream;
 use Mojo::JSON 'j';
+use Mojo::Template;
 
 use constant DEBUG => $ENV{TEST_MOJO_PHANTOM_DEBUG};
 
@@ -48,52 +49,50 @@ sub _phantom_raw {
   });
 }
 
+my $template = <<'TEMPLATE';
+  % my ($t, $url, %opts) = @_;
+
+  // Setup test function
+  function test(args) {
+    var system = require('system');
+    system.stdout.writeLine(JSON.stringify(args));
+    system.stdout.writeLine('<%= $opts{sep} %>');
+    system.stdout.flush();
+  }
+  
+  // Setup Cookies
+  % foreach my $cookie ($t->ua->cookie_jar->all) {
+    % my $name = $cookie->name;
+    phantom.addCookie({
+      name: '<%= $name %>',
+      value: '<%= $cookie->value %>',
+      domain: '<%= $cookie->domain || $opts{base}->host %>',
+    }) || test(['Test::More::diag', 'Failed to import cookie <%= $name %>']);
+  % }
+
+  // Requst page and inject user-provided javascript
+  var page = require('webpage').create();
+  page.open('<%= $url %>', function(status) {
+
+    <%= $opts{js} %>;
+
+    phantom.exit();
+  });
+TEMPLATE
+
 sub _phantom {
   my ($t, %opts) = @_;
   $opts{package} ||= 'Test::More';
-
-  my $base = $t->ua->server->nb_url;
+  $opts{base}    ||= $t->ua->server->nb_url;
+  $opts{sep}     ||= '--__TEST_MOJO_PHANTOM__--';
+  
   my $url = $t->app->url_for(@{ $opts{url_for} || [] });
   unless ($url->is_abs) {
-    $url = $url->to_abs($base);
+    $url = $url->to_abs($opts{base});
   }
 
-  my $sep = '--__TEST_MOJO_PHANTOM__--';
+  my $js = Mojo::Template->new->render($template, $t, $url, %opts);
 
-  my $js = '';
-
-  $js .= sprintf <<'  JS', $sep;
-    // Setup test function
-    function test(args) {
-      var system = require('system');
-      system.stdout.writeLine(JSON.stringify(args));
-      system.stdout.writeLine('%s');
-      system.stdout.flush();
-    }
-  JS
-
-  $js .= "\n    // Setup Cookies\n";
-  foreach my $cookie ($t->ua->cookie_jar->all) {
-    my $name = $cookie->name;
-    $js .= sprintf <<'    JS', $name, $cookie->value, $cookie->domain || $base->host, $name;
-      phantom.addCookie({
-        name: '%s',
-        value: '%s',
-        domain: '%s',
-      }) || test(['Test::More::diag', 'Failed to import cookie %s']);
-    JS
-  }
-
-  $js .= sprintf <<'  JS', $url, $opts{js};
-    // Requst page and inject user-provided javascript
-    var page = require('webpage').create();
-    page.open('%s', function(status) {
-
-      %s;
-
-      phantom.exit();
-    });
-  JS
 
   warn "\nPerl >>>> Phantom:\n$js\n" if DEBUG;
 
@@ -102,7 +101,7 @@ sub _phantom {
     my ($stream, $bytes) = @_;
     warn "\nPerl <<<< Phantom: $bytes\n" if DEBUG;
     $buffer .= $bytes;
-    while ($buffer =~ s/^(.*)\n$sep\n//) {
+    while ($buffer =~ s/^(.*)\n$opts{sep}\n//) {
       my ($test, @args) = @{ j $1 };
       _resolve($test, $opts{package})->(@args);
     }
