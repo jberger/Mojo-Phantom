@@ -51,14 +51,25 @@ sub _phantom_raw {
 my $template = <<'TEMPLATE';
   % my ($t, $url, %opts) = @_;
 
-  // Setup test function
-  function test() {
+  // Setup perl function
+  function perl() {
     var system = require('system');
     var args = Array.prototype.slice.call(arguments);
     system.stdout.writeLine(JSON.stringify(args));
     system.stdout.writeLine('<%== $opts{sep} %>');
     system.stdout.flush();
   }
+  perl.diag = function() {
+    perl.apply(this, ['Test::More::diag'].concat(Array.prototype.slice.call(arguments)));
+  };
+
+  perl.is = function() {
+    perl.apply(this, ['Test::More::is'].concat(Array.prototype.slice.call(arguments)));
+  };
+
+  perl.ok = function() {
+    perl.apply(this, ['Test::More::ok'].concat(Array.prototype.slice.call(arguments)));
+  };
   
   // Setup Cookies
   % foreach my $cookie ($t->ua->cookie_jar->all) {
@@ -67,7 +78,7 @@ my $template = <<'TEMPLATE';
       name: '<%== $name %>',
       value: '<%== $cookie->value %>',
       domain: '<%== $cookie->domain || $opts{base}->host %>',
-    }) || test(['Test::More::diag', 'Failed to import cookie <%== $name %>']);
+    }) || perl.diag('Failed to import cookie <%== $name %>');
   % }
 
   // Requst page and inject user-provided javascript
