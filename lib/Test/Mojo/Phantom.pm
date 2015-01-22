@@ -22,6 +22,13 @@ sub import {
 }
 
 has base => sub { shift->t->ua->server->nb_url };
+
+has bind => sub { {
+  ok   => 'Test::More::ok',
+  is   => 'Test::More::is',
+  diag => 'Test::More::diag',
+} };
+
 has package => 'Test::More';
 has sep => '--__TEST_MOJO_PHANTOM__--';
 has t => sub { die 't is required' };
@@ -38,17 +45,14 @@ has template => <<'TEMPLATE';
     system.stdout.writeLine('<%== $self->sep %>');
     system.stdout.flush();
   }
-  perl.diag = function() {
-    perl.apply(this, ['Test::More::diag'].concat(Array.prototype.slice.call(arguments)));
-  };
 
-  perl.is = function() {
-    perl.apply(this, ['Test::More::is'].concat(Array.prototype.slice.call(arguments)));
-  };
-
-  perl.ok = function() {
-    perl.apply(this, ['Test::More::ok'].concat(Array.prototype.slice.call(arguments)));
-  };
+  % my $bind = $self->bind || {};
+  % foreach my $func (keys %$bind) {
+    % my $target = $bind->{$func} || $func;
+    perl.<%= $func %> = function() {
+      perl.apply(this, ['<%== $target %>'].concat(Array.prototype.slice.call(arguments)));
+    };
+  % }
   
   // Setup Cookies
   % foreach my $cookie ($t->ua->cookie_jar->all) {
