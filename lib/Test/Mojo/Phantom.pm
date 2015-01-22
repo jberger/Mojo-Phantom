@@ -19,6 +19,14 @@ sub import {
   }
 }
 
+sub _resolve {
+  my ($function, $package) = @_;
+  if ($function =~ s/(.*+):://) {
+    $package = $1;
+  }
+  return $package->can($function);
+}
+
 sub _phantom_raw {
   my $cb = pop;
   my ($js, $read) = @_;
@@ -42,6 +50,7 @@ sub _phantom_raw {
 
 sub _phantom {
   my ($t, %opts) = @_;
+  $opts{package} ||= 'Test::More';
 
   my $base = $t->ua->server->nb_url;
   my $url = $t->app->url_for(@{ $opts{url_for} || [] });
@@ -71,7 +80,7 @@ sub _phantom {
         name: '%s',
         value: '%s',
         domain: '%s',
-      }) || test(['diag', 'Failed to import cookie %s']);
+      }) || test(['Test::More::diag', 'Failed to import cookie %s']);
     JS
   }
 
@@ -95,7 +104,7 @@ sub _phantom {
     $buffer .= $bytes;
     while ($buffer =~ s/^(.*)\n$sep\n//) {
       my ($test, @args) = @{ j $1 };
-      Test::More->can($test)->(@args);
+      _resolve($test, $opts{package})->(@args);
     }
   };
 
