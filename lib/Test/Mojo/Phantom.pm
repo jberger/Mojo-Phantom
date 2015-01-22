@@ -1,6 +1,6 @@
 package Test::Mojo::Phantom;
 
-use Mojo::Base -strict;
+use Mojo::Base -base;
 
 use Test::More ();
 use File::Temp ();
@@ -20,6 +20,55 @@ sub import {
     Role::Tiny->apply_roles_to_package('Test::Mojo', 'Test::Mojo::Role::Phantom');
   }
 }
+
+has base => sub { shift->t->ua->server->nb_url };
+has package => 'Test::More';
+has sep => '--__TEST_MOJO_PHANTOM__--';
+has t => sub { die 't is required' };
+
+has template => <<'TEMPLATE';
+  % my ($self, $url, $js) = @_;
+  % my $t = $self->t;
+
+  // Setup perl function
+  function perl() {
+    var system = require('system');
+    var args = Array.prototype.slice.call(arguments);
+    system.stdout.writeLine(JSON.stringify(args));
+    system.stdout.writeLine('<%== $self->sep %>');
+    system.stdout.flush();
+  }
+  perl.diag = function() {
+    perl.apply(this, ['Test::More::diag'].concat(Array.prototype.slice.call(arguments)));
+  };
+
+  perl.is = function() {
+    perl.apply(this, ['Test::More::is'].concat(Array.prototype.slice.call(arguments)));
+  };
+
+  perl.ok = function() {
+    perl.apply(this, ['Test::More::ok'].concat(Array.prototype.slice.call(arguments)));
+  };
+  
+  // Setup Cookies
+  % foreach my $cookie ($t->ua->cookie_jar->all) {
+    % my $name = $cookie->name;
+    phantom.addCookie({
+      name: '<%== $name %>',
+      value: '<%== $cookie->value %>',
+      domain: '<%== $cookie->domain || $self->base->host %>',
+    }) || perl.diag('Failed to import cookie <%== $name %>');
+  % }
+
+  // Requst page and inject user-provided javascript
+  var page = require('webpage').create();
+  page.open('<%== $url %>', function(status) {
+
+    <%= $js %>;
+
+    phantom.exit();
+  });
+TEMPLATE
 
 sub _resolve {
   my ($function, $package) = @_;
@@ -48,73 +97,28 @@ sub _phantom_raw {
   });
 }
 
-my $template = <<'TEMPLATE';
-  % my ($t, $url, %opts) = @_;
-
-  // Setup perl function
-  function perl() {
-    var system = require('system');
-    var args = Array.prototype.slice.call(arguments);
-    system.stdout.writeLine(JSON.stringify(args));
-    system.stdout.writeLine('<%== $opts{sep} %>');
-    system.stdout.flush();
-  }
-  perl.diag = function() {
-    perl.apply(this, ['Test::More::diag'].concat(Array.prototype.slice.call(arguments)));
-  };
-
-  perl.is = function() {
-    perl.apply(this, ['Test::More::is'].concat(Array.prototype.slice.call(arguments)));
-  };
-
-  perl.ok = function() {
-    perl.apply(this, ['Test::More::ok'].concat(Array.prototype.slice.call(arguments)));
-  };
-  
-  // Setup Cookies
-  % foreach my $cookie ($t->ua->cookie_jar->all) {
-    % my $name = $cookie->name;
-    phantom.addCookie({
-      name: '<%== $name %>',
-      value: '<%== $cookie->value %>',
-      domain: '<%== $cookie->domain || $opts{base}->host %>',
-    }) || perl.diag('Failed to import cookie <%== $name %>');
-  % }
-
-  // Requst page and inject user-provided javascript
-  var page = require('webpage').create();
-  page.open('<%== $url %>', function(status) {
-
-    <%= $opts{js} %>;
-
-    phantom.exit();
-  });
-TEMPLATE
-
 sub _phantom {
-  my ($t, %opts) = @_;
-  $opts{package} ||= 'Test::More';
-  $opts{base}    ||= $t->ua->server->nb_url;
-  $opts{sep}     ||= '--__TEST_MOJO_PHANTOM__--';
-  
-  my $url = $t->app->url_for(@{ $opts{url_for} || [] });
-  unless ($url->is_abs) {
-    $url = $url->to_abs($opts{base});
-  }
+  my ($self, %opts) = @_;
+  my $sep = $self->sep;
 
-  my $js = Mojo::Template->new(escape => \&javascript_value_escape)->render($template, $t, $url, %opts);
+  my $url = $self->t->app->url_for(@{ $opts{url_for} || [] });
+  $url = $url->to_abs($self->base) unless $url->is_abs;
 
+  my $js = Mojo::Template
+    ->new(escape => \&javascript_value_escape)
+    ->render($self->template, $self, $url, $opts{js});
 
   warn "\nPerl >>>> Phantom:\n$js\n" if DEBUG;
 
+  my $package = $self->package;
   my $buffer = '';
   my $read = sub {
     my ($stream, $bytes) = @_;
     warn "\nPerl <<<< Phantom: $bytes\n" if DEBUG;
     $buffer .= $bytes;
-    while ($buffer =~ s/^(.*)\n$opts{sep}\n//) {
+    while ($buffer =~ s/^(.*)\n$sep\n//) {
       my ($test, @args) = @{ j $1 };
-      _resolve($test, $opts{package})->(@args);
+      _resolve($test, $package)->(@args);
     }
   };
 

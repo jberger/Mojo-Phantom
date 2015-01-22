@@ -13,17 +13,20 @@ sub phantom_ok {
   my @url_for = @_;
   my $package = $opts->{package} || caller;
 
+  my $phantom = Test::Mojo::Phantom->new(
+    package => $package,
+    t => $t,
+  );
+
   my $name = $opts->{name} || 'all phantom tests successful';
   my $ctx = Test::Stream::Toolset::context();
   my $st = do {
     $ctx->subtest_start($name);
     my $subtest_ctx = Test::Stream::Toolset::context();
     $subtest_ctx->plan($opts->{plan}) if $opts->{plan};
-    Test::Mojo::Phantom::_phantom(
-      $t,
+    $phantom->_phantom(
       url_for => \@url_for,
       js      => $js,
-      package => $package,
     );
     $ctx->subtest_stop($name);
   };

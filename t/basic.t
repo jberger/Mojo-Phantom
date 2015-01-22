@@ -32,13 +32,11 @@ __DATA__
 
 <!DOCTYPE html>
 <html>
-  <head>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-  </head>
+  <head></head>
   <body>
     <p>Hello</p>
     %= javascript begin
-      $(function(){ $('p').text('Goodbye') });
+      (function(){ document.getElementsByTagName('p')[0].innerHTML = 'Goodbye'; })();
     % end
   </body>
 </html>
