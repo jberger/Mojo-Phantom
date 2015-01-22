@@ -23,9 +23,7 @@ sub import {
 
 sub _resolve {
   my ($function, $package) = @_;
-  if ($function =~ s/(.*+):://) {
-    $package = $1;
-  }
+  $package = $1 if $function =~ s/(.*+):://;
   return $package->can($function);
 }
 
