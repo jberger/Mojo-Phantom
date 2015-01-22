@@ -41,20 +41,19 @@ sub _phantom_raw {
 }
 
 sub _phantom {
-  my $t = shift;
-  my $js = pop;
+  my ($t, %opts) = @_;
 
   my $base = $t->ua->server->nb_url;
-  my $url = $t->app->url_for(@_);
+  my $url = $t->app->url_for(@{ $opts{url_for} || [] });
   unless ($url->is_abs) {
     $url = $url->to_abs($base);
   }
 
   my $sep = '--__TEST_MOJO_PHANTOM__--';
 
-  my $lib = '';
+  my $js = '';
 
-  $lib .= sprintf <<'  LIB', $sep;
+  $js .= sprintf <<'  JS', $sep;
     // Setup test function
     function test(args) {
       var system = require('system');
@@ -62,21 +61,21 @@ sub _phantom {
       system.stdout.writeLine('%s');
       system.stdout.flush();
     }
-  LIB
+  JS
 
-  $lib .= "\n    // Setup Cookies\n";
+  $js .= "\n    // Setup Cookies\n";
   foreach my $cookie ($t->ua->cookie_jar->all) {
     my $name = $cookie->name;
-    $lib .= sprintf <<'    LIB', $name, $cookie->value, $cookie->domain || $base->host, $name;
+    $js .= sprintf <<'    JS', $name, $cookie->value, $cookie->domain || $base->host, $name;
       phantom.addCookie({
         name: '%s',
         value: '%s',
         domain: '%s',
       }) || test(['diag', 'Failed to import cookie %s']);
-    LIB
+    JS
   }
 
-  $lib .= sprintf <<'  LIB', $url, $js;
+  $js .= sprintf <<'  JS', $url, $opts{js};
     // Requst page and inject user-provided javascript
     var page = require('webpage').create();
     page.open('%s', function(status) {
@@ -85,9 +84,9 @@ sub _phantom {
 
       phantom.exit();
     });
-  LIB
+  JS
 
-  warn "\nPerl >>>> Phantom:\n$lib\n" if DEBUG;
+  warn "\nPerl >>>> Phantom:\n$js\n" if DEBUG;
 
   my $buffer = '';
   my $read = sub {
@@ -101,7 +100,7 @@ sub _phantom {
   };
 
   Mojo::IOLoop->delay(sub{
-    _phantom_raw($lib, $read, shift->begin);
+    _phantom_raw($js, $read, shift->begin);
   })->wait;
 }
 

@@ -9,13 +9,22 @@ require Test::Mojo::Phantom;
 sub phantom_ok {
   my $t = shift;
   my $opts = ref $_[-1] ? pop : {};
+  my $js = pop;
+  my @url_for = @_;
+  my $package = $opts->{package} || caller;
+
   my $name = $opts->{name} || 'all phantom tests successful';
   my $ctx = Test::Stream::Toolset::context();
   my $st = do {
     $ctx->subtest_start($name);
     my $subtest_ctx = Test::Stream::Toolset::context();
     $subtest_ctx->plan($opts->{plan}) if $opts->{plan};
-    Test::Mojo::Phantom::_phantom($t, @_);
+    Test::Mojo::Phantom::_phantom(
+      $t,
+      url_for => \@url_for,
+      js      => $js,
+      package => $package,
+    );
     $ctx->subtest_stop($name);
   };
 
