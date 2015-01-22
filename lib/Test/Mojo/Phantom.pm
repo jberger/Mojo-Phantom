@@ -19,7 +19,7 @@ sub import {
   }
 }
 
-sub phantom_raw {
+sub _phantom_raw {
   my $cb = pop;
   my ($js, $read) = @_;
 
@@ -40,7 +40,7 @@ sub phantom_raw {
   });
 }
 
-sub phantom {
+sub _phantom {
   my $t = shift;
   my $js = pop;
 
@@ -101,7 +101,7 @@ sub phantom {
   };
 
   Mojo::IOLoop->delay(sub{
-    phantom_raw($lib, $read, shift->begin);
+    _phantom_raw($lib, $read, shift->begin);
   })->wait;
 }
 

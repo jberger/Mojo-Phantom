@@ -15,7 +15,7 @@ sub phantom_ok {
     $ctx->subtest_start($name);
     my $subtest_ctx = Test::Stream::Toolset::context();
     $subtest_ctx->plan($opts->{plan}) if $opts->{plan};
-    Test::Mojo::Phantom::phantom($t, @_);
+    Test::Mojo::Phantom::_phantom($t, @_);
     $ctx->subtest_stop($name);
   };
 
