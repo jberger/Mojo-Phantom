@@ -23,7 +23,7 @@ $t->phantom_ok('get', <<'JS');
     return document.getElementsByTagName('p')[0].innerHTML;
   });
 
-  test(['is', text, 'pass', 'cookie seen from phantom']);
+  test('is', text, 'pass', 'cookie seen from phantom');
 JS
 
 done_testing;

@@ -12,14 +12,14 @@ my $t = Test::Mojo->new;
 ok 1, 'from mojo';
 
 my $js = <<'JS';
-  test(['ok', 1, 'ok from phantomjs']);
-  test(['is', status, 'success', 'status check']);
+  test('ok', 1, 'ok from phantomjs');
+  test('is', status, 'success', 'status check');
 
   var text = page.evaluate(function(){
     return document.getElementsByTagName('p')[0].innerHTML;
   })
 
-  test(['is', text, 'Goodbye', 'code evaluation']);
+  test('is', text, 'Goodbye', 'code evaluation');
 JS
 
 $t->phantom_ok('main', $js, {plan => 3});

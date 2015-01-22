@@ -52,8 +52,9 @@ my $template = <<'TEMPLATE';
   % my ($t, $url, %opts) = @_;
 
   // Setup test function
-  function test(args) {
+  function test() {
     var system = require('system');
+    var args = Array.prototype.slice.call(arguments);
     system.stdout.writeLine(JSON.stringify(args));
     system.stdout.writeLine('<%== $opts{sep} %>');
     system.stdout.flush();
