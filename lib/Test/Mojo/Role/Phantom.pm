@@ -32,7 +32,10 @@ sub phantom_ok {
     $ctx->subtest_start($name);
     my $subtest_ctx = Test::Stream::Toolset::context();
     $subtest_ctx->plan($opts->{plan}) if $opts->{plan};
-    $phantom->_phantom($url, $js);
+    Mojo::IOLoop->next_tick(sub{
+      $phantom->execute_url($url, $js, sub { Mojo::IOLoop->stop } );
+    });
+    Mojo::IOLoop->start;
     $ctx->subtest_stop($name);
   };
 
