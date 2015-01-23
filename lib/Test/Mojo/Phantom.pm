@@ -46,6 +46,7 @@ has template => <<'TEMPLATE';
     system.stdout.flush();
   }
 
+  // Setup bound functions
   % my $bind = $self->bind || {};
   % foreach my $func (keys %$bind) {
     % my $target = $bind->{$func} || $func;
@@ -121,8 +122,8 @@ sub _phantom {
     warn "\nPerl <<<< Phantom: $bytes\n" if DEBUG;
     $buffer .= $bytes;
     while ($buffer =~ s/^(.*)\n$sep\n//) {
-      my ($test, @args) = @{ j $1 };
-      _resolve($test, $package)->(@args);
+      my ($function, @args) = @{ j $1 };
+      _resolve($function, $package)->(@args);
     }
   };
 
