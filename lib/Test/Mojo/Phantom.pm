@@ -9,6 +9,7 @@ use Mojo::IOLoop;
 use Mojo::IOLoop::Stream;
 use Mojo::JSON 'j';
 use Mojo::Template;
+use Mojo::URL;
 use JavaScript::Value::Escape;
 
 use constant DEBUG => $ENV{TEST_MOJO_PHANTOM_DEBUG};
@@ -21,7 +22,7 @@ sub import {
   }
 }
 
-has base => sub { shift->t->ua->server->nb_url };
+has base => sub { Mojo::URL->new };
 
 has bind => sub { {
   ok   => 'Test::More::ok',
@@ -29,13 +30,12 @@ has bind => sub { {
   diag => 'Test::More::diag',
 } };
 
+has cookies => sub { [] };
 has package => 'Test::More';
 has sep => '--__TEST_MOJO_PHANTOM__--';
-has t => sub { die 't is required' };
 
 has template => <<'TEMPLATE';
   % my ($self, $url, $js) = @_;
-  % my $t = $self->t;
 
   // Setup perl function
   function perl() {
@@ -54,9 +54,9 @@ has template => <<'TEMPLATE';
       perl.apply(this, ['<%== $target %>'].concat(Array.prototype.slice.call(arguments)));
     };
   % }
-  
+
   // Setup Cookies
-  % foreach my $cookie ($t->ua->cookie_jar->all) {
+  % foreach my $cookie (@{ $self->cookies }) {
     % my $name = $cookie->name;
     phantom.addCookie({
       name: '<%== $name %>',
@@ -91,7 +91,7 @@ sub _tmp_file {
 sub _phantom_raw {
   my ($self, $file, $cb) = @_;
   # note that $file might be an object that needs to have a strong reference
- 
+
   my $pid = open my $pipe, '-|', 'phantomjs', "$file";
   die 'Could not spawn' unless defined $pid;
   my $stream = Mojo::IOLoop::Stream->new($pipe);
@@ -100,7 +100,7 @@ sub _phantom_raw {
   my $sep = $self->sep;
   my $package = $self->package;
   my $buffer = '';
-  
+
   $stream->on(read => sub {
     my ($stream, $bytes) = @_;
     warn "\nPerl <<<< Phantom: $bytes\n" if DEBUG;
@@ -120,14 +120,11 @@ sub _phantom_raw {
 }
 
 sub _phantom {
-  my ($self, %opts) = @_;
+  my ($self, $url, $js) = @_;
 
-  my $url = $self->t->app->url_for(@{ $opts{url_for} || [] });
-  $url = $url->to_abs($self->base) unless $url->is_abs;
-
-  my $js = Mojo::Template
+  $js = Mojo::Template
     ->new(escape => \&javascript_value_escape)
-    ->render($self->template, $self, $url, $opts{js});
+    ->render($self->template, $self, $url, $js);
 
   warn "\nPerl >>>> Phantom:\n$js\n" if DEBUG;
   my $tmp = _tmp_file($js);

@@ -10,12 +10,20 @@ sub phantom_ok {
   my $t = shift;
   my $opts = ref $_[-1] ? pop : {};
   my $js = pop;
-  my @url_for = @_;
+
+  my $base = $t->ua->server->nb_url;
+
+  my $url = $t->app->url_for(@_);
+  unless ($url->is_abs) {
+    $url = $url->to_abs($base);
+  }
+
   my $package = $opts->{package} || caller;
 
   my $phantom = Test::Mojo::Phantom->new(
+    base    => $base,
+    cookies => [ $t->ua->cookie_jar->all ],
     package => $package,
-    t => $t,
   );
 
   my $name = $opts->{name} || 'all phantom tests successful';
@@ -24,10 +32,7 @@ sub phantom_ok {
     $ctx->subtest_start($name);
     my $subtest_ctx = Test::Stream::Toolset::context();
     $subtest_ctx->plan($opts->{plan}) if $opts->{plan};
-    $phantom->_phantom(
-      url_for => \@url_for,
-      js      => $js,
-    );
+    $phantom->_phantom($url, $js);
     $ctx->subtest_stop($name);
   };
 
