@@ -81,22 +81,39 @@ sub _resolve {
   return $package->can($function);
 }
 
-sub _phantom_raw {
-  my $cb = pop;
-  my ($js, $read) = @_;
-
+sub _tmp_file {
+  my $content = shift;
   my $tmp = File::Temp->new(SUFFIX => '.js');
-  Mojo::Util::spurt($js => "$tmp");
+  Mojo::Util::spurt($content => "$tmp");
+  return $tmp;
+}
 
-  my $pid = open my $phantom, '-|', 'phantomjs', "$tmp";
+sub _phantom_raw {
+  my ($self, $file, $cb) = @_;
+  # note that $file might be an object that needs to have a strong reference
+ 
+  my $pid = open my $pipe, '-|', 'phantomjs', "$file";
   die 'Could not spawn' unless defined $pid;
-
-  my $stream = Mojo::IOLoop::Stream->new($phantom);
-  if ($read) { $stream->on(read => $read) }
+  my $stream = Mojo::IOLoop::Stream->new($pipe);
   my $id = Mojo::IOLoop->stream($stream);
+
+  my $sep = $self->sep;
+  my $package = $self->package;
+  my $buffer = '';
+  
+  $stream->on(read => sub {
+    my ($stream, $bytes) = @_;
+    warn "\nPerl <<<< Phantom: $bytes\n" if DEBUG;
+    $buffer .= $bytes;
+    while ($buffer =~ s/^(.*)\n$sep\n//) {
+      my ($function, @args) = @{ j $1 };
+      _resolve($function, $package)->(@args);
+    }
+  });
+
   $stream->on(close => sub {
     waitpid $pid, 0;
-    undef $tmp;
+    undef $file;
     Mojo::IOLoop->remove($id);
     $cb->(undef);
   });
@@ -104,7 +121,6 @@ sub _phantom_raw {
 
 sub _phantom {
   my ($self, %opts) = @_;
-  my $sep = $self->sep;
 
   my $url = $self->t->app->url_for(@{ $opts{url_for} || [] });
   $url = $url->to_abs($self->base) unless $url->is_abs;
@@ -114,21 +130,10 @@ sub _phantom {
     ->render($self->template, $self, $url, $opts{js});
 
   warn "\nPerl >>>> Phantom:\n$js\n" if DEBUG;
-
-  my $package = $self->package;
-  my $buffer = '';
-  my $read = sub {
-    my ($stream, $bytes) = @_;
-    warn "\nPerl <<<< Phantom: $bytes\n" if DEBUG;
-    $buffer .= $bytes;
-    while ($buffer =~ s/^(.*)\n$sep\n//) {
-      my ($function, @args) = @{ j $1 };
-      _resolve($function, $package)->(@args);
-    }
-  };
+  my $tmp = _tmp_file($js);
 
   Mojo::IOLoop->delay(sub{
-    _phantom_raw($js, $read, shift->begin);
+    $self->_phantom_raw($tmp, shift->begin);
   })->wait;
 }
 
