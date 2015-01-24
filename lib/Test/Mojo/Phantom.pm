@@ -11,6 +11,7 @@ use Mojo::JSON 'j';
 use Mojo::Template;
 use Mojo::URL;
 use JavaScript::Value::Escape;
+use Scalar::Util;
 
 use constant DEBUG => $ENV{TEST_MOJO_PHANTOM_DEBUG};
 
@@ -92,42 +93,44 @@ sub execute_file {
   my ($self, $file, $cb) = @_;
   # note that $file might be an object that needs to have a strong reference
 
-  Mojo::IOLoop->delay(
-    sub {
-      my $delay = shift;
-      my $end = $delay->begin(0);
+  my $pid = open my $pipe, '-|', 'phantomjs', "$file";
+  die 'Could not spawn' unless defined $pid;
+  my $stream = Mojo::IOLoop::Stream->new($pipe);
+  my $id = Mojo::IOLoop->stream($stream);
 
-      my $pid = open my $pipe, '-|', 'phantomjs', "$file";
-      die 'Could not spawn' unless defined $pid;
-      my $stream = Mojo::IOLoop::Stream->new($pipe);
-      my $id = Mojo::IOLoop->stream($stream);
+  my $sep = $self->sep;
+  my $package = $self->package;
+  my $buffer = '';
 
-      my $sep = $self->sep;
-      my $package = $self->package;
-      my $buffer = '';
+  my $weak = $stream;
+  Scalar::Util::weaken($weak);
+  my $kill = sub {
+    kill KILL => $pid;
+    $weak->close if $weak;
+  };
+  $stream->on(error => $kill);
 
-      $stream->on(read => sub {
-        my ($stream, $bytes) = @_;
-        warn "\nPerl <<<< Phantom: $bytes\n" if DEBUG;
-        $buffer .= $bytes;
-        while ($buffer =~ s/^(.*)\n$sep\n//) {
-          my ($function, @args) = @{ j $1 };
-          _resolve($function, $package)->(@args);
-        }
-      });
+  $stream->on(read => sub {
+    my ($stream, $bytes) = @_;
+    eval {
+      warn "\nPerl <<<< Phantom: $bytes\n" if DEBUG;
+      $buffer .= $bytes;
+      while ($buffer =~ s/^(.*)\n$sep\n//) {
+        my ($function, @args) = @{ j $1 };
+        _resolve($function, $package)->(@args);
+      }
+    };
+    $kill->() if $@;
+  });
 
-      $stream->on(close => sub {
-        waitpid $pid, 0;
-        undef $file;
-        Mojo::IOLoop->remove($id);
-        $end->(undef);
-      });
-    },
-    sub {
-      my ($delay, $err) = @_;
-      $self->$cb($err);
-    },
-  )->catch(sub{ $self->$cb($_[1]) })->wait;
+  $stream->on(close => sub {
+    waitpid $pid, 0;
+    undef $file;
+    Mojo::IOLoop->remove($id);
+    $self->$cb($? >> 8);
+  });
+
+  return $kill;
 }
 
 sub execute_url {
@@ -140,7 +143,7 @@ sub execute_url {
   warn "\nPerl >>>> Phantom:\n$js\n" if DEBUG;
   my $tmp = _tmp_file($js);
 
-  $self->execute_file($tmp, $cb);
+  return $self->execute_file($tmp, $cb);
 }
 
 
