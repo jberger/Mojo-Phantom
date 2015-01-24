@@ -216,7 +216,7 @@ To learn more about using this for testing, see L<Test::Mojo::Role::Phantom/phan
 
 Importing L<Test::Mojo::Phantom> applies the L<Test::Mojo::Role::Phantom> to the T<Test::Mojo> class.
 
-To avoid applying the role, don't import the moduled.
+Although typically fine, if you don't want to apply the role globally, don't import the module.
 It can then be applied to an instance of L<Test::Mojo> manually.
 
   my $t = Test::Mojo->new;
