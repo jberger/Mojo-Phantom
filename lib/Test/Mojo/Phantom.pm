@@ -47,6 +47,20 @@ has template => <<'TEMPLATE';
     system.stdout.flush();
   }
 
+  // Setup error handling
+  var onError = function(msg, trace) {
+    var msgStack = ['PHANTOM ERROR: ' + msg];
+    if (trace && trace.length) {
+      msgStack.push('TRACE:');
+      trace.forEach(function(t) {
+        msgStack.push(' -> ' + (t.file || t.sourceURL) + ': ' + t.line + (t.function ? ' (in function ' + t.function +')' : ''));
+      });
+    }
+    perl('Test::More::diag', msgStack.join('\n'));
+    phantom.exit(1);
+  };
+  phantom.onError = onError;
+
   // Setup bound functions
   % my $bind = $self->bind || {};
   % foreach my $func (keys %$bind) {
@@ -68,6 +82,7 @@ has template => <<'TEMPLATE';
 
   // Requst page and inject user-provided javascript
   var page = require('webpage').create();
+  page.onError = onError;
   page.open('<%== $url %>', function(status) {
 
     <%= $js %>;
@@ -124,6 +139,7 @@ sub execute_file {
   });
 
   $stream->on(close => sub {
+    warn "\nStream $pid closed\n" if DEBUG;
     waitpid $pid, 0;
     undef $file;
     Mojo::IOLoop->remove($id);
