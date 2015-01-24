@@ -159,6 +159,69 @@ sub execute_url {
   return $self->execute_file($tmp, $cb);
 }
 
-
 1;
+
+
+=head1 NAME
+
+Test::Mojo::Phantom - Test your client side code via PhantomJS
+
+=head1 SYNOPSIS
+
+  use Mojolicious::Lite;
+
+  use Test::More;
+  use Test::Mojo;
+  use Test::Mojo::Phantom;
+
+  any '/' => 'index';
+
+  my $t = Test::Mojo->new;
+  $t->phantom_ok('/' => <<'JS');
+    var text = page.evaluate(function(){
+      return document.getElementById('name').innerHTML;
+    });
+    perl.is(text, 'Bender', 'name changed after loading');
+  JS
+
+  done_testing;
+
+  __DATA__
+
+  @@ index.html.ep
+
+  <!DOCTYPE html>
+  <html>
+    <head></head>
+    <body>
+      <p id="name">Leela</p>
+      <script>
+        (function(){ document.getElementById('name').innerHTML = 'Bender' })();
+      </script>
+    </body>
+  </html>
+
+=head1 DESCRIPTION
+
+Evaluate javascript tests using PhantomJS.
+
+Javascript commands are executed and test data is extracted in a PhantomJS process.
+The results are then shipped back to the Perl process and executed there.
+Each invocation of the Javascript interpreter is presented to the test harness as a subtest.
+
+This class is actually the import and transport mechanism of the system.
+To learn more about using this for testing, see L<Test::Mojo::Role::Phantom/phantom_ok>.
+
+=head1 IMPORT
+
+Importing L<Test::Mojo::Phantom> applies the L<Test::Mojo::Role::Phantom> to the T<Test::Mojo> class.
+
+To avoid applying the role, don't import the moduled.
+It can then be applied to an instance of L<Test::Mojo> manually.
+
+  my $t = Test::Mojo->new;
+  Role::Tiny->apply_roles_to_object($t, 'Test::Mojo::Role::Phantom');
+
+
+
 
