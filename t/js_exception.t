@@ -24,7 +24,7 @@ events_are(
   check {
     directive seek => 1;
     event ok => { name => 'dummy' };
-    event diag => { message => qr/argh/ };
+    event ok => { bool => 0, name => qr/argh/ };
   },
 );
 

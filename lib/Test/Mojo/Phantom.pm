@@ -2,7 +2,6 @@ package Test::Mojo::Phantom;
 
 use Mojo::Base -base;
 
-use Test::More ();
 use File::Temp ();
 use Mojo::Util;
 use Mojo::IOLoop;
@@ -25,14 +24,10 @@ sub import {
 
 has base => sub { Mojo::URL->new };
 
-has bind => sub { {
-  ok   => 'Test::More::ok',
-  is   => 'Test::More::is',
-  diag => 'Test::More::diag',
-} };
+has bind => sub { { error => 'CORE::die' } };
 
 has cookies => sub { [] };
-has package => 'Test::More';
+has package => 'main';
 has sep => '--__TEST_MOJO_PHANTOM__--';
 
 has template => <<'TEMPLATE';
@@ -56,7 +51,9 @@ has template => <<'TEMPLATE';
         msgStack.push(' -> ' + (t.file || t.sourceURL) + ': ' + t.line + (t.function ? ' (in function ' + t.function +')' : ''));
       });
     }
-    perl('Test::More::diag', msgStack.join('\n'));
+    if ('error' in perl) {
+      perl.error(msgStack.join('\n'));
+    }
     phantom.exit(1);
   };
   phantom.onError = onError;

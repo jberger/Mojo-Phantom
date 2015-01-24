@@ -18,12 +18,19 @@ sub phantom_ok {
     $url = $url->to_abs($base);
   }
 
-  my $package = $opts->{package} || caller;
+  my %bind = (
+    ok    => 'Test::More::ok',
+    is    => 'Test::More::is',
+    diag  => 'Test::More::diag',
+    error => 'Test::More::fail',
+  );
+  %bind = (%bind, %{ $opts->{bind} || {} });
 
   my $phantom = Test::Mojo::Phantom->new(
     base    => $base,
+    bind    => \%bind,
     cookies => [ $t->ua->cookie_jar->all ],
-    package => $package,
+    package => $opts->{package} || caller,
   );
 
   my $name = $opts->{name} || 'all phantom tests successful';
