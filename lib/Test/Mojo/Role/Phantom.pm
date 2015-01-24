@@ -23,8 +23,8 @@ sub phantom_ok {
     is    => 'Test::More::is',
     diag  => 'Test::More::diag',
     error => 'Test::More::fail',
+    %{ $opts->{bind} || {} },
   );
-  %bind = (%bind, %{ $opts->{bind} || {} });
 
   my $phantom = Test::Mojo::Phantom->new(
     base    => $base,
