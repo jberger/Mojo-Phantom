@@ -4,7 +4,6 @@ use Role::Tiny;
 
 use Test::More 1.301001_097 ();
 use Test::Stream::Toolset;
-use Scalar::Util qw/blessed/;
 
 require Test::Mojo::Phantom;
 
@@ -20,10 +19,7 @@ sub phantom_ok {
     $url = $url->to_abs($base);
   }
 
-  my $phantom;
-  if (blessed $opts) {
-    $phantom = $opts;
-  } else {
+  my $phantom = $opts->{phantom} || do {
     my %bind = (
       ok    => 'Test::More::ok',
       is    => 'Test::More::is',
@@ -32,13 +28,13 @@ sub phantom_ok {
       %{ $opts->{bind} || {} },
     );
 
-    $phantom = Test::Mojo::Phantom->new(
+    Test::Mojo::Phantom->new(
       base    => $base,
       bind    => \%bind,
       cookies => [ $t->ua->cookie_jar->all ],
       package => $opts->{package} || caller,
     );
-  }
+  };
 
   my $name = $opts->{name} || 'all phantom tests successful';
   my $ctx = Test::Stream::Toolset::context();
