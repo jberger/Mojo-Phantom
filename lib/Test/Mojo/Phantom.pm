@@ -281,7 +281,8 @@ Returns a function reference that can be invoked to kill the child process.
 =head2 execute_url
 
 Builds the template for PhantomJS to execute and starts it.
-Takes a target url and a string of javascript to be executed in the page context.
+Takes a target url and a string of javascript to be executed in the context that the template provides.
+By default this is the page context.
 Returns a function reference that can be invoked to kill the child process.
 
 =head1 SOURCE REPOSITORY
