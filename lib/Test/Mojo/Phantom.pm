@@ -222,6 +222,76 @@ It can then be applied to an instance of L<Test::Mojo> manually.
   my $t = Test::Mojo->new;
   Role::Tiny->apply_roles_to_object($t, 'Test::Mojo::Role::Phantom');
 
+=head1 ATTRIBUTES
 
+L<Test::Mojo::Phantom> inherits the attributes from L<Mojo::Base> and implements the following new ones.
 
+=head2 base
 
+An instance of L<Mojo::URL> used to make relative urls absolute.
+This is used, for example, in setting cookies
+
+=head2 bind
+
+A hash reference used to bind JS methods and Perl functions.
+Keys are methods to be created in the C<perl> object in javascript.
+Values are functions for those methods to invoke when the message is received by the Perl process.
+The functions may be relative to the L<package> or are absolute if they contain C<::>.
+If the function is false, then the key is used as the function name.
+
+Note that if an C<error> key is available, it is used to signal errors on the JS side before exitting.
+
+Defaults to C<< { error => 'CORE::die' } >>.
+
+=head2 cookies
+
+An array reference containing L<Mojo::Cookie::Response> objects.
+
+=head2 package
+
+The package for binding relative function names.
+Defaults to C<main>
+
+=head2 sep
+
+A string used to separate messages from the JS side.
+Defaults to C<--__TEST_MOJO_PHANTOM__-->.
+
+=head2 template
+
+A string which is used to build a L<Mojo::Template> object.
+It takes as its arguments the instance, a target url, and a string of javascript to be evaluated.
+
+The default handles much of what this module does, you should be very sure of why you need to change this before doing so.
+
+=head1 METHODS
+
+L<Test::Mojo::Phantom> inherits all methods from L<Mojo::Base> and implements the following new ones.
+
+=head2 execute_file
+
+A lower level function which handles the message passing etc.
+You probably want L<execute_url>.
+Takes a file path to start C<phantomjs> with.
+Returns a function reference that can be invoked to kill the child process.
+
+=head2 execute_url
+
+Builds the template for PhantomJS to execute and starts it.
+Takes a target url and a string of javascript to be executed in the page context.
+Returns a function reference that can be invoked to kill the child process.
+
+=head1 SOURCE REPOSITORY
+
+L<http://github.com/jberger/Test-Mojo-Phantom> 
+
+=head1 AUTHOR
+
+Joel Berger, E<lt>joel.a.berger@gmail.comE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2015 by Joel Berger
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
