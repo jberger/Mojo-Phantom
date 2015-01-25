@@ -117,9 +117,11 @@ sub execute_file {
   my $weak = $stream;
   Scalar::Util::weaken($weak);
   my $kill = sub {
+    return unless $pid;
     kill KILL => $pid;
     $weak->close if $weak;
   };
+
   $stream->on(error => $kill);
 
   $stream->on(read => sub {
@@ -138,6 +140,7 @@ sub execute_file {
   $stream->on(close => sub {
     warn "\nStream $pid closed\n" if DEBUG;
     waitpid $pid, 0;
+    undef $pid;
     undef $file;
     Mojo::IOLoop->remove($id);
     $self->$cb($? >> 8);
@@ -283,7 +286,7 @@ Returns a function reference that can be invoked to kill the child process.
 
 =head1 SOURCE REPOSITORY
 
-L<http://github.com/jberger/Test-Mojo-Phantom> 
+L<http://github.com/jberger/Test-Mojo-Phantom>
 
 =head1 AUTHOR
 
