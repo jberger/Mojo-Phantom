@@ -7,21 +7,27 @@ use Test::Mojo;
 
 use Test::Mojo::Phantom;
 
+use Test::Stream::Tester;
+
 my $t = Test::Mojo->new;
 
-my $success = 1;
-my $id = Mojo::IOLoop->timer(10 => sub { $success = 0; Mojo::IOLoop->stop });
+my $grab = grab();
 
 $t->phantom_ok('/', <<'JS');
   perl.ok(1, 'dummy test from javascript');
   var system = require('system');
   perl('CORE::die', 'die');
-  system.stdin.read(20); // sleep 20
+  perl.ok(1, "don't get here");
 JS
 
-Mojo::IOLoop->remove($id);
-ok $success, 'kill the phantom process on perl-side error';
-#TODO kill the test on failure
+events_are(
+  $grab->finish->[0]->events,
+  check {
+    event ok => { bool => 1, name => qr/dummy/ };
+    event ok => { bool => 0, name => qr/signal/ };
+    directive 'end';
+  },
+);
 
 done_testing;
 

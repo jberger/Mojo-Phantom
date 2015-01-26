@@ -43,7 +43,16 @@ sub phantom_ok {
     my $subtest_ctx = Test::Stream::Toolset::context();
     $subtest_ctx->plan($opts->{plan}) if $opts->{plan};
     Mojo::IOLoop->next_tick(sub{
-      $phantom->execute_url($url, $js, sub { Mojo::IOLoop->stop } );
+      $phantom->execute_url($url, $js, sub {
+        my ($phantom, $status) = @_;
+        if ($status) {
+          my $exit = $status >> 8;
+          my $sig  = $status & 127;
+          my $msg  = $exit ? "status: $exit" : "signal: $sig";
+          Test::More::fail("phantom exitted with $msg");
+        }
+        Mojo::IOLoop->stop;
+      });
     });
     Mojo::IOLoop->start;
     $ctx->subtest_stop($name);

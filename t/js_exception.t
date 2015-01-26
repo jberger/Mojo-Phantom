@@ -15,16 +15,19 @@ my $grab = grab();
 
 $t->phantom_ok('/' => <<'JS');
   perl.ok(1, 'dummy');
-  // phantom.dozNotExists();
-  throw 'argh';
+  page.evaluate(function(){
+    window.dozNotExistz();
+  });
+  perl.ok(1, "don't get here");
 JS
 
 events_are(
   $grab->finish->[0]->events,
   check {
-    directive seek => 1;
     event ok => { name => 'dummy' };
-    event ok => { bool => 0, name => qr/argh/ };
+    event ok => { bool => 0, name => qr/PHANTOM ERROR.*dozNotExistz/ };
+    event ok => { bool => 0, name => qr/signal/};
+    directive 'end';
   },
 );
 

@@ -54,7 +54,10 @@ has template => <<'TEMPLATE';
     if ('error' in perl) {
       perl.error(msgStack.join('\n'));
     }
-    phantom.exit(1);
+
+    //phantom.exit isn't exitting immediately, so let Perl kill us
+    perl('CORE::die');
+    //phantom.exit(1);
   };
   phantom.onError = onError;
 
@@ -90,7 +93,12 @@ TEMPLATE
 
 sub _resolve {
   my ($function, $package) = @_;
-  $package = $1 if $function =~ s/(.*+):://;
+  if ($function =~ /::/) {
+    my @package = split /::/, $function;
+    $function = pop @package;
+    $package = join '::', @package;
+  }
+  warn "Executing ${package}::$function" if DEBUG;
   return $package->can($function);
 }
 
@@ -115,10 +123,13 @@ sub execute_file {
   my $buffer = '';
 
   my $weak = $stream;
+  my $status;
   Scalar::Util::weaken($weak);
   my $kill = sub {
     return unless $pid;
     kill KILL => $pid;
+    waitpid $pid, 0;
+    $status = $?;
     $weak->close if $weak;
   };
 
@@ -126,24 +137,24 @@ sub execute_file {
 
   $stream->on(read => sub {
     my ($stream, $bytes) = @_;
-    eval {
-      warn "\nPerl <<<< Phantom: $bytes\n" if DEBUG;
-      $buffer .= $bytes;
-      while ($buffer =~ s/^(.*)\n$sep\n//) {
+    warn "\nPerl <<<< Phantom: $bytes\n" if DEBUG;
+    $buffer .= $bytes;
+    while ($buffer =~ s/^(.*)\n$sep\n//) {
+      eval {
         my ($function, @args) = @{ j $1 };
         _resolve($function, $package)->(@args);
-      }
-    };
-    $kill->() if $@;
+      };
+      return $kill->() if $@;
+    }
   });
 
   $stream->on(close => sub {
     warn "\nStream $pid closed\n" if DEBUG;
-    waitpid $pid, 0;
     undef $pid;
     undef $file;
-    Mojo::IOLoop->remove($id);
-    $self->$cb($? >> 8);
+    # Mojo::IOLoop->remove($id);
+    $status ||= $?;
+    $self->$cb($status);
   });
 
   return $kill;
