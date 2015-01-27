@@ -88,11 +88,7 @@ TEMPLATE
 
 sub _resolve {
   my ($function, $package) = @_;
-  if ($function =~ /::/) {
-    my @package = split /::/, $function;
-    $function = pop @package;
-    $package = join '::', @package;
-  }
+  $package = $1 if $function =~ s/^(.*)::([^:]+)$/$2/;
   warn "Executing ${package}::$function" if DEBUG;
   return $package->can($function);
 }
