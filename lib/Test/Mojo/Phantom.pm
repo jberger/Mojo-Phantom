@@ -22,13 +22,11 @@ sub import {
   }
 }
 
-has base => sub { Mojo::URL->new };
-
-has bind => sub { { error => 'CORE::die' } };
-
+has base    => sub { Mojo::URL->new };
+has bind    => sub { {} };
 has cookies => sub { [] };
 has package => 'main';
-has sep => '--__TEST_MOJO_PHANTOM__--';
+has sep     => '--__TEST_MOJO_PHANTOM__--';
 
 has template => <<'TEMPLATE';
   % my ($self, $url, $js) = @_;
@@ -51,12 +49,9 @@ has template => <<'TEMPLATE';
         msgStack.push(' -> ' + (t.file || t.sourceURL) + ': ' + t.line + (t.function ? ' (in function ' + t.function +')' : ''));
       });
     }
-    if ('error' in perl) {
-      perl.error(msgStack.join('\n'));
-    }
 
     //phantom.exit isn't exitting immediately, so let Perl kill us
-    perl('CORE::die');
+    perl('CORE::die', msgStack.join('\n'));
     //phantom.exit(1);
   };
   phantom.onError = onError;
@@ -123,9 +118,10 @@ sub execute_file {
   my $buffer = '';
 
   my $weak = $stream;
-  my $status;
+  my ($status, $error);
   Scalar::Util::weaken($weak);
   my $kill = sub {
+    $error = shift if @_;
     return unless $pid;
     kill KILL => $pid;
     waitpid $pid, 0;
@@ -133,7 +129,7 @@ sub execute_file {
     $weak->close if $weak;
   };
 
-  $stream->on(error => $kill);
+  $stream->on(error => sub{ $kill->($_[1]) });
 
   $stream->on(read => sub {
     my ($stream, $bytes) = @_;
@@ -144,7 +140,7 @@ sub execute_file {
         my ($function, @args) = @{ j $1 };
         _resolve($function, $package)->(@args);
       };
-      return $kill->() if $@;
+      return $kill->($@) if $@;
     }
   });
 
@@ -154,7 +150,7 @@ sub execute_file {
     undef $file;
     # Mojo::IOLoop->remove($id);
     $status ||= $?;
-    $self->$cb($status);
+    $self->$cb($error, $status);
   });
 
   return $kill;
@@ -253,10 +249,6 @@ Values are functions for those methods to invoke when the message is received by
 The functions may be relative to the L<package> or are absolute if they contain C<::>.
 If the function is false, then the key is used as the function name.
 
-Note that if an C<error> key is available, it is used to signal errors on the JS side before exitting.
-
-Defaults to C<< { error => 'CORE::die' } >>.
-
 =head2 cookies
 
 An array reference containing L<Mojo::Cookie::Response> objects.
@@ -286,13 +278,13 @@ L<Test::Mojo::Phantom> inherits all methods from L<Mojo::Base> and implements th
 
 A lower level function which handles the message passing etc.
 You probably want L<execute_url>.
-Takes a file path to start C<phantomjs> with.
+Takes a file path to start C<phantomjs> with and a callback.
 Returns a function reference that can be invoked to kill the child process.
 
 =head2 execute_url
 
 Builds the template for PhantomJS to execute and starts it.
-Takes a target url and a string of javascript to be executed in the context that the template provides.
+Takes a target url, a string of javascript to be executed in the context that the template provides and a callback.
 By default this is the page context.
 Returns a function reference that can be invoked to kill the child process.
 

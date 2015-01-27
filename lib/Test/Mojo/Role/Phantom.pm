@@ -44,13 +44,14 @@ sub phantom_ok {
     $subtest_ctx->plan($opts->{plan}) if $opts->{plan};
     Mojo::IOLoop->next_tick(sub{
       $phantom->execute_url($url, $js, sub {
-        my ($phantom, $status) = @_;
+        my ($phantom, $error, $status) = @_;
         if ($status) {
           my $exit = $status >> 8;
           my $sig  = $status & 127;
           my $msg  = $exit ? "status: $exit" : "signal: $sig";
-          Test::More::fail("phantom exitted with $msg");
+          Test::More::diag("phantom exitted with $msg");
         }
+        Test::More::fail($error) if $error;
         Mojo::IOLoop->stop;
       });
     });

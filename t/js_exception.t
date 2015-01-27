@@ -25,8 +25,8 @@ events_are(
   $grab->finish->[0]->events,
   check {
     event ok => { name => 'dummy' };
+    event diag => { message => qr/signal/ };
     event ok => { bool => 0, name => qr/PHANTOM ERROR.*dozNotExistz/ };
-    event ok => { bool => 0, name => qr/signal/};
     directive 'end';
   },
 );
