@@ -137,6 +137,10 @@ Which is handy if you are using a certain function often.
 
 Note that if the value is falsey, the key name is use as the target.
 
+=item setup
+
+A pass-through option specifying javascript to be run after the page object is created but before the url is opened.
+
 =item phantom
 
 If you need even more control, you may pass in an instance of L<Test::Mojo::Phantom> and it will be used.

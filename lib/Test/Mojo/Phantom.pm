@@ -26,6 +26,7 @@ has base    => sub { Mojo::URL->new };
 has bind    => sub { {} };
 has cookies => sub { [] };
 has package => 'main';
+has 'setup';
 has sep     => '--__TEST_MOJO_PHANTOM__--';
 
 has template => <<'TEMPLATE';
@@ -78,6 +79,10 @@ has template => <<'TEMPLATE';
   // Requst page and inject user-provided javascript
   var page = require('webpage').create();
   page.onError = onError;
+
+  // Additional setup
+  <%= $self->setup || '' %>;
+
   page.open('<%== $url %>', function(status) {
 
     <%= $js %>;
@@ -253,6 +258,10 @@ An array reference containing L<Mojo::Cookie::Response> objects.
 
 The package for binding relative function names.
 Defaults to C<main>
+
+=head2 setup
+
+An additional string of javascript which is executed after the page object is created but before the url is opened.
 
 =head2 sep
 

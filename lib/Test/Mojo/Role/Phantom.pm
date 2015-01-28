@@ -32,6 +32,7 @@ sub phantom_ok {
       base    => $base,
       bind    => \%bind,
       cookies => [ $t->ua->cookie_jar->all ],
+      setup   => $opts->{setup},
       package => $opts->{package} || caller,
     );
   };
@@ -219,6 +220,10 @@ In the phantom process you may then use the shortcut as
 Which is handy if you are using a certain function often.
 
 Note that if the value is falsey, the key name is use as the target.
+
+=item setup
+
+A pass-through option specifying javascript to be run after the page object is created but before the url is opened.
 
 =item phantom
 
