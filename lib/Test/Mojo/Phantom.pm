@@ -2,6 +2,9 @@ package Test::Mojo::Phantom;
 
 use Mojo::Base -base;
 
+our $VERSION = '0.01';
+$VERSION = eval $VERSION;
+
 use File::Temp ();
 use Mojo::Util;
 use Mojo::IOLoop;
