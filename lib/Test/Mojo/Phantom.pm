@@ -94,13 +94,6 @@ has template => <<'TEMPLATE';
   });
 TEMPLATE
 
-sub _tmp_file {
-  my $content = shift;
-  my $tmp = File::Temp->new(SUFFIX => '.js');
-  Mojo::Util::spurt($content => "$tmp");
-  return $tmp;
-}
-
 sub execute_file {
   my ($self, $file, $cb) = @_;
   # note that $file might be an object that needs to have a strong reference
@@ -158,7 +151,8 @@ sub execute_url {
     ->render($self->template, $self, $url, $js);
 
   warn "\nPerl >>>> Phantom:\n$js\n" if DEBUG;
-  my $tmp = _tmp_file($js);
+  my $tmp = File::Temp->new(SUFFIX => '.js');
+  Mojo::Util::spurt($js => "$tmp");
 
   return $self->execute_file($tmp, $cb);
 }
