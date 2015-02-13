@@ -9,7 +9,7 @@ use File::Temp ();
 use Mojo::Util;
 use Mojo::IOLoop;
 use Mojo::IOLoop::Stream;
-use Mojo::JSON 'j';
+use Mojo::JSON;
 use Mojo::Template;
 use Mojo::URL;
 use JavaScript::Value::Escape;
@@ -94,13 +94,6 @@ has template => <<'TEMPLATE';
   });
 TEMPLATE
 
-sub _resolve {
-  my ($function, $package) = @_;
-  $package = $1 if $function =~ s/^(.*)::([^:]+)$/$2/;
-  warn "Executing ${package}::$function" if DEBUG;
-  return $package->can($function);
-}
-
 sub _tmp_file {
   my $content = shift;
   my $tmp = File::Temp->new(SUFFIX => '.js');
@@ -140,10 +133,8 @@ sub execute_file {
     warn "\nPerl <<<< Phantom: $bytes\n" if DEBUG;
     $buffer .= $bytes;
     while ($buffer =~ s/^(.*)\n$sep\n//) {
-      eval {
-        my ($function, @args) = @{ j $1 };
-        _resolve($function, $package)->(@args);
-      };
+      my ($function, @args) = @{ Mojo::JSON::decode_json $1 };
+      eval "package $package; no strict 'refs'; &{\$function}(\@args)";
       return $kill->($@) if $@;
     }
   });
@@ -152,7 +143,6 @@ sub execute_file {
     warn "\nStream $pid closed\n" if DEBUG;
     undef $pid;
     undef $file;
-    # Mojo::IOLoop->remove($id);
     $status ||= $?;
     $self->$cb($error, $status);
   });
