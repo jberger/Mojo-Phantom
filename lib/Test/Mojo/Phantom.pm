@@ -149,6 +149,8 @@ sub execute_url {
   $js = Mojo::Template
     ->new(escape => \&javascript_value_escape)
     ->render($self->template, $self, $url, $js);
+  
+  die $js if ref $js; # Mojo::Template returns Mojo::Exception objects on failure
 
   warn "\nPerl >>>> Phantom:\n$js\n" if DEBUG;
   my $tmp = File::Temp->new(SUFFIX => '.js');
