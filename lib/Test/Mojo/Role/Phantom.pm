@@ -31,7 +31,7 @@ sub phantom_ok {
     Test::Mojo::Phantom->new(
       base    => $base,
       bind    => \%bind,
-      cookies => [ $t->ua->cookie_jar->all ],
+      cookies => $t->ua->cookie_jar->all,
       setup   => $opts->{setup},
       package => $opts->{package} || caller,
     );
