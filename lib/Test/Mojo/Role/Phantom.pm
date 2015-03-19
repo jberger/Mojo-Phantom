@@ -47,13 +47,13 @@ sub phantom_ok {
       sub { $phantom->execute_url($url, $js, shift->begin) },
       sub {
         my ($delay, $err, $status) = @_;
-        die $err if $err;
         if ($status) {
           my $exit = $status >> 8;
           my $sig  = $status & 127;
           my $msg  = $exit ? "status: $exit" : "signal: $sig";
           Test::More::diag("phantom exitted with $msg");
         }
+        die $err if $err;
       },
     )->catch(sub{ Test::More::fail($_[1]) })->wait;
     $ctx->subtest_stop($name);
