@@ -59,21 +59,14 @@ sub phantom_ok {
     $ctx->subtest_stop($name);
   };
 
-  my $e = $ctx->subtest(
-    # Stuff from ok (most of this gets initialized inside)
-    undef, # real_bool, gets set properly by initializer
-    $st->{name}, # name
-    undef, # diag
-    undef, # bool
-    undef, # level
-
-    # Subtest specific stuff
-    $st->{state},
-    $st->{events},
-    $st->{exception},
-    $st->{early_return},
-    $st->{delayed},
-    $st->{instant},
+  my $e = $ctx->send_subtest(
+    name         => $st->{name},
+    state        => $st->{state},
+    events       => $st->{events},
+    exception    => $st->{exception},
+    early_return => $st->{early_return},
+    delayed      => $st->{delayed},
+    instant      => $st->{instant},
   );
 
   return $t->success($e->bool);
