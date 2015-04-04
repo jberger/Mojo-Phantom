@@ -17,14 +17,6 @@ use Scalar::Util;
 
 use constant DEBUG => $ENV{TEST_MOJO_PHANTOM_DEBUG};
 
-sub import {
-  my $class = shift;
-  if ( @_ == 0 or $_[0] eq '-apply' ) {
-    require Test::Mojo::Role::Phantom;
-    Role::Tiny->apply_roles_to_package('Test::Mojo', 'Test::Mojo::Role::Phantom');
-  }
-}
-
 has base    => sub { Mojo::URL->new };
 has bind    => sub { {} };
 has cookies => sub { [] };
@@ -149,7 +141,7 @@ sub execute_url {
   $js = Mojo::Template
     ->new(escape => \&javascript_value_escape)
     ->render($self->template, $self, $url, $js);
-  
+
   die $js if ref $js; # Mojo::Template returns Mojo::Exception objects on failure
 
   warn "\nPerl >>>> Phantom:\n$js\n" if DEBUG;
@@ -171,12 +163,11 @@ Test::Mojo::Phantom - Test your client side code via PhantomJS
   use Mojolicious::Lite;
 
   use Test::More;
-  use Test::Mojo;
-  use Test::Mojo::Phantom;
+  use Test::Mojo::WithRoles qw/Phantom/;
 
   any '/' => 'index';
 
-  my $t = Test::Mojo->new;
+  my $t = Test::Mojo::WithRoles->new;
   $t->phantom_ok('/' => <<'JS');
     var text = page.evaluate(function(){
       return document.getElementById('name').innerHTML;
@@ -209,18 +200,8 @@ Javascript commands are executed and test data is extracted in a PhantomJS proce
 The results are then shipped back to the Perl process and executed there.
 Each invocation of the Javascript interpreter is presented to the test harness as a subtest.
 
-This class is actually the import and transport mechanism of the system.
+This class is actually the transport mechanism of the system.
 To learn more about using this for testing, see L<Test::Mojo::Role::Phantom/phantom_ok>.
-
-=head1 IMPORT
-
-Importing L<Test::Mojo::Phantom> applies the L<Test::Mojo::Role::Phantom> to the T<Test::Mojo> class.
-
-Although typically fine, if you don't want to apply the role globally, don't import the module.
-It can then be applied to an instance of L<Test::Mojo> manually.
-
-  my $t = Test::Mojo->new;
-  Role::Tiny->apply_roles_to_object($t, 'Test::Mojo::Role::Phantom');
 
 =head1 ATTRIBUTES
 

@@ -5,7 +5,7 @@ use Role::Tiny;
 use Test::More 1.301001_097 ();
 use Test::Stream::Toolset;
 
-require Test::Mojo::Phantom;
+use Test::Mojo::Phantom;
 
 sub phantom_ok {
   my $t = shift;
@@ -83,22 +83,11 @@ Test::Mojo::Role::Phantom - Adds phantom_ok to Test::Mojo
   use Mojolicious::Lite;
 
   use Test::More;
-  use Test::Mojo;
-
-  # -- this --
-  use Test::Mojo::Phantom;
-
-  # -- or this --
-  require Test::Mojo::Role::Phantom;
-  Role::Tiny->apply_roles_to_package('Test::Mojo', 'Test::Mojo::Role::Phantom');
+  use Test::Mojo::WithRoles qw/Phantom/;
 
   any '/' => 'index';
 
-  my $t = Test::Mojo->new;
-
-  # -- or this --
-  require Test::Mojo::Role::Phantom;
-  Role::Tiny->apply_roles_to_object($t, 'Test::Mojo::Role::Phantom');
+  my $t = Test::Mojo::WithRoles->new;
 
   $t->phantom_ok('/' => <<'JS');
     var text = page.evaluate(function(){
@@ -129,6 +118,8 @@ Test::Mojo::Role::Phantom - Adds phantom_ok to Test::Mojo
 L<Test::Mojo::Role::Phantom> is a L<Role::Tiny> role which adds a L<phantom_ok> method to L<Test::Mojo> or a L<Test::Mojo> instance.
 This method tests the javascript behavior of the app via an external L<PhantomJS|http://phantomjs.org/> process.
 You must install that program and it must be in your C<PATH> in order to use this method.
+
+The author recommends using L<Test::Mojo::WithRoles> to manage the role application.
 The low level interaction is handled by a L<Test::Mojo::Phantom> instance, but for the most part that is transparent to the test method.
 
 =head1 METHODS

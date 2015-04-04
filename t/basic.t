@@ -3,11 +3,9 @@ use Mojolicious::Lite;
 any '/' => 'main';
 
 use Test::More;
-use Test::Mojo;
+use Test::Mojo::WithRoles qw/Phantom/;
 
-use Test::Mojo::Phantom;
-
-my $t = Test::Mojo->new;
+my $t = Test::Mojo::WithRoles->new;
 
 ok 1, 'from mojo';
 

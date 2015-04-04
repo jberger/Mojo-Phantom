@@ -1,12 +1,11 @@
 use Mojolicious::Lite;
 
 use Test::More;
-use Test::Mojo;
-use Test::Mojo::Phantom;
+use Test::Mojo::WithRoles qw/Phantom/;
 
 any '/' => 'index';
 
-my $t = Test::Mojo->new;
+my $t = Test::Mojo::WithRoles->new;
 $t->phantom_ok('/' => <<'JS');
   var text = page.evaluate(function(){
     return document.getElementById('name').innerHTML;

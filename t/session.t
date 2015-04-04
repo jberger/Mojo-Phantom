@@ -1,9 +1,7 @@
 use Mojolicious::Lite;
 
 use Test::More;
-use Test::Mojo;
-
-use Test::Mojo::Phantom;
+use Test::Mojo::WithRoles qw/Phantom/;
 
 any '/set' => sub {
   my $c = shift;
@@ -13,7 +11,7 @@ any '/set' => sub {
 
 any '/get' => 'get';
 
-my $t = Test::Mojo->new;
+my $t = Test::Mojo::WithRoles->new;
 $t->get_ok('/set')
   ->status_is(200)
   ->content_is('set');

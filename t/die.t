@@ -3,13 +3,11 @@ use Mojolicious::Lite;
 any '/' => { text => 'Hello World'};
 
 use Test::More;
-use Test::Mojo;
-
-use Test::Mojo::Phantom;
+use Test::Mojo::WithRoles qw/Phantom/;
 
 use Test::Stream::Tester;
 
-my $t = Test::Mojo->new;
+my $t = Test::Mojo::WithRoles->new;
 
 my $grab = grab();
 
