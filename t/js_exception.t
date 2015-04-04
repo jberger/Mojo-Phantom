@@ -24,7 +24,7 @@ events_are(
   check {
     event ok => { name => 'dummy' };
     event diag => { message => qr/signal/ };
-    event ok => { bool => 0, name => qr/PHANTOM ERROR.*dozNotExistz/ };
+    event ok => { pass => 0, name => qr/PHANTOM ERROR.*dozNotExistz/ };
     directive 'end';
   },
 );

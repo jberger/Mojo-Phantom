@@ -59,7 +59,8 @@ sub phantom_ok {
     $ctx->subtest_stop($name);
   };
 
-  my $e = $ctx->send_subtest(
+  my $e = $ctx->send_event(
+    Subtest =>
     name         => $st->{name},
     state        => $st->{state},
     events       => $st->{events},
@@ -69,7 +70,7 @@ sub phantom_ok {
     instant      => $st->{instant},
   );
 
-  return $t->success($e->bool);
+  return $t->success($e->effective_pass);
 }
 
 1;

@@ -21,9 +21,9 @@ JS
 events_are(
   $grab->finish->[0]->events,
   check {
-    event ok => { bool => 1, name => qr/dummy/ };
+    event ok => { pass => 1, name => qr/dummy/ };
     event diag => { message => qr/signal/ };
-    event ok => { bool => 0, name => "argh\n" };
+    event ok => { pass => 0, name => "argh\n" };
     directive 'end';
   },
 );
