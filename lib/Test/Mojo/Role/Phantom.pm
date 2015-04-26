@@ -4,6 +4,7 @@ use Role::Tiny;
 
 use Test::More 1.301001_097 ();
 use Test::Stream::Toolset;
+use Test::Stream::Block;
 
 use Test::Mojo::Phantom;
 
@@ -39,38 +40,28 @@ sub phantom_ok {
 
   my $name = $opts->{name} || 'all phantom tests successful';
   my $ctx = Test::Stream::Toolset::context();
-  my $st = do {
-    $ctx->subtest_start($name);
-    my $subtest_ctx = Test::Stream::Toolset::context();
-    $subtest_ctx->plan($opts->{plan}) if $opts->{plan};
-    Mojo::IOLoop->delay(
-      sub { $phantom->execute_url($url, $js, shift->begin) },
-      sub {
-        my ($delay, $err, $status) = @_;
-        if ($status) {
-          my $exit = $status >> 8;
-          my $sig  = $status & 127;
-          my $msg  = $exit ? "status: $exit" : "signal: $sig";
-          Test::More::diag("phantom exitted with $msg");
-        }
-        die $err if $err;
-      },
-    )->catch(sub{ Test::More::fail($_[1]) })->wait;
-    $ctx->subtest_stop($name);
-  };
-
-  my $e = $ctx->send_event(
-    Subtest =>
-    name         => $st->{name},
-    state        => $st->{state},
-    events       => $st->{events},
-    exception    => $st->{exception},
-    early_return => $st->{early_return},
-    delayed      => $st->{delayed},
-    instant      => $st->{instant},
+  my $block = Test::Stream::Block->new(
+    name => $name,
+    caller => [caller(0)],
+    coderef => sub{
+      $ctx->set;
+      Test::More::plan(tests => $opts->{plan}) if $opts->{plan};
+      Mojo::IOLoop->delay(
+        sub { $phantom->execute_url($url, $js, shift->begin) },
+        sub {
+          my ($delay, $err, $status) = @_;
+          if ($status) {
+            my $exit = $status >> 8;
+            my $sig  = $status & 127;
+            my $msg  = $exit ? "status: $exit" : "signal: $sig";
+            Test::More::diag("phantom exitted with $msg");
+          }
+          die $err if $err;
+        },
+      )->catch(sub{ Test::More::fail($_[1]) })->wait;
+    }
   );
-
-  return $t->success($e->effective_pass);
+  return $t->success(Test::More::subtest($name => $block));
 }
 
 1;

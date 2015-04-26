@@ -24,11 +24,10 @@ $t->phantom_ok('/' => <<'JS', $opts);
 JS
 
 events_are(
-  $grab->finish->[0]->events,
+  $grab->finish->[1]->events,
   check {
     event diag => { message => 'startup message' };
     event diag => { message => 'test message' };
-    directive 'end';
   },
 );
 

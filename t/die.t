@@ -6,6 +6,7 @@ use Test::More;
 use Test::Mojo::WithRoles qw/Phantom/;
 
 use Test::Stream::Tester;
+use t::Helper 'no_event';
 
 my $t = Test::Mojo::WithRoles->new;
 
@@ -19,12 +20,12 @@ $t->phantom_ok('/', <<'JS');
 JS
 
 events_are(
-  $grab->finish->[0]->events,
+  $grab->finish->[1]->events,
   check {
     event ok => { pass => 1, name => qr/dummy/ };
     event diag => { message => qr/signal/ };
     event ok => { pass => 0, name => "argh\n" };
-    directive 'end';
+    directive \&no_event => { type => 'ok', name => "don't get here" };
   },
 );
 
