@@ -110,7 +110,7 @@ sub execute_file {
   $proc->on(close => sub {
     my ($proc) = @_;
     undef $file;
-    $self->$cb($error || $proc->error, $proc->exit_status);
+    $self->$cb($error || $proc->error, $proc->exit_status) if $cb;
   });
 
   return $proc->start($file);
