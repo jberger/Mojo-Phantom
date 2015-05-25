@@ -7,13 +7,14 @@ any '/' => 'index';
 
 my $t = Test::Mojo::WithRoles->new;
 
-use Test::Stream::Tester;
-
-my $grab = grab();
+my @messages;
+sub console {
+  push @messages, @_;
+}
 
 my $opts = { setup => <<'SETUP' };
   page.onConsoleMessage = function(msg) {
-    perl.diag(msg);
+    perl('console', msg);
   }
 SETUP
 
@@ -21,15 +22,12 @@ $t->phantom_ok('/' => <<'JS', $opts);
   page.evaluate(function(){
     console.log('test message');
   });
+  perl.ok(1, 'dummy test');
 JS
 
-events_are(
-  $grab->finish->[1]->events,
-  check {
-    event diag => { message => 'startup message' };
-    event diag => { message => 'test message' };
-  },
-);
+
+my $expect = ['startup message', 'test message' ];
+is_deeply \@messages, $expect, 'got expected console messages';
 
 done_testing;
 
