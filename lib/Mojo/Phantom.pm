@@ -5,15 +5,14 @@ use Mojo::Base -base;
 our $VERSION = '0.01';
 $VERSION = eval $VERSION;
 
+use Mojo::Phantom::Process;
+
 use File::Temp ();
 use Mojo::Util;
-use Mojo::IOLoop;
-use Mojo::IOLoop::Stream;
 use Mojo::JSON;
 use Mojo::Template;
 use Mojo::URL;
 use JavaScript::Value::Escape;
-use Scalar::Util;
 
 use constant DEBUG => $ENV{MOJO_PHANTOM_DEBUG};
 
@@ -90,49 +89,31 @@ sub execute_file {
   my ($self, $file, $cb) = @_;
   # note that $file might be an object that needs to have a strong reference
 
-  my $pid = open my $pipe, '-|', 'phantomjs', "$file";
-  die 'Could not spawn' unless defined $pid;
-  my $stream = Mojo::IOLoop::Stream->new($pipe);
-  my $id = Mojo::IOLoop->stream($stream);
+  my $proc = Mojo::Phantom::Process->new;
 
   my $sep = $self->sep;
   my $package = $self->package;
   my $buffer = '';
+  my $error;
 
-  my $weak = $stream;
-  my ($status, $error);
-  Scalar::Util::weaken($weak);
-  my $kill = sub {
-    $error = shift if @_;
-    return unless $pid;
-    kill KILL => $pid;
-    waitpid $pid, 0;
-    $status = $?;
-    $weak->close if $weak;
-  };
-
-  $stream->on(error => sub{ $kill->($_[1]) });
-
-  $stream->on(read => sub {
-    my ($stream, $bytes) = @_;
+  $proc->on(read => sub {
+    my ($proc, $bytes) = @_;
     warn "\nPerl <<<< Phantom: $bytes\n" if DEBUG;
     $buffer .= $bytes;
     while ($buffer =~ s/^(.*)\n$sep\n//) {
       my ($function, @args) = @{ Mojo::JSON::decode_json $1 };
       eval "package $package; no strict 'refs'; &{\$function}(\@args)";
-      return $kill->($@) if $@;
+      if ($@) { $error = $@; return $proc->kill }
     }
   });
 
-  $stream->on(close => sub {
-    warn "\nStream $pid closed\n" if DEBUG;
-    undef $pid;
+  $proc->on(close => sub {
+    my ($proc) = @_;
     undef $file;
-    $status ||= $?;
-    $self->$cb($error, $status);
+    $self->$cb($error || $proc->error, $proc->exit_status);
   });
 
-  return $kill;
+  return $proc->start($file);
 }
 
 sub execute_url {
@@ -194,14 +175,9 @@ Mojo::Phantom - Interact with your client side code via PhantomJS
 
 =head1 DESCRIPTION
 
-Evaluate javascript tests using PhantomJS.
-
-Javascript commands are executed and test data is extracted in a PhantomJS process.
-The results are then shipped back to the Perl process and executed there.
-Each invocation of the Javascript interpreter is presented to the test harness as a subtest.
-
-This class is actually the transport mechanism of the system.
-To learn more about using this for testing, see L<Test::Mojo::Role::Phantom/phantom_ok>.
+L<Mojo::Phantom> is the transport backbone for L<Test::Mojo::Role::Phantom>.
+Currently it is used to evaluate javascript tests using PhantomJS, though more is possible.
+Please note that this class is not yet as stable as the public api for the test role.
 
 =head1 ATTRIBUTES
 
@@ -254,14 +230,16 @@ L<Mojo::Phantom> inherits all methods from L<Mojo::Base> and implements the foll
 A lower level function which handles the message passing etc.
 You probably want L<execute_url>.
 Takes a file path to start C<phantomjs> with and a callback.
-Returns a function reference that can be invoked to kill the child process.
+
+Returns a pre-initialized instance of L<Mojo::Phantom::Process>.
+The end user likely does not need to worry about this object, though it might be useful if the process needs to be killed or the stream timeout needs to be lengthened.
 
 =head2 execute_url
 
 Builds the template for PhantomJS to execute and starts it.
 Takes a target url, a string of javascript to be executed in the context that the template provides and a callback.
 By default this is the page context.
-Returns a function reference that can be invoked to kill the child process.
+The return value is the same as L</execute_file>.
 
 =head1 SOURCE REPOSITORY
 
