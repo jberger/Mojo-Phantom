@@ -53,5 +53,24 @@ subtest 'js side error' => sub {
   cmp_ok $status, '!=', 0, 'exit status non-zero';
 };
 
+subtest 'stream exception' => sub {
+  my ($error, $status);
+  my $cb = sub { (undef, $error, $status) = @_ };
+  my $proc = $phantom->execute_url('/', <<'  JS', $cb);
+    perl('ok', 1, 'dummy test which does not actually occur');
+    perl('fail', "don't get here");
+  JS
+
+  $proc->unsubscribe('read')->on(read => sub { shift->stream->emit(error => 'argh') });
+  my $closed = 0;
+  $proc->on(close => sub { $closed++; Mojo::IOLoop->stop });
+  Mojo::IOLoop->start;
+  ok $closed, 'emitted the close event';
+
+  chomp($error);
+  is $error, 'argh', 'got the right error';
+  cmp_ok $status, '!=', 0, 'exit status non-zero';
+};
+
 done_testing;
 
