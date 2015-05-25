@@ -6,7 +6,7 @@ use Test::More 1.301001_097 ();
 use Test::Stream::Toolset;
 use Test::Stream::Block;
 
-use Test::Mojo::Phantom;
+use Mojo::Phantom;
 
 sub phantom_ok {
   my $t = shift;
@@ -29,7 +29,7 @@ sub phantom_ok {
       %{ $opts->{bind} || {} },
     );
 
-    Test::Mojo::Phantom->new(
+    Mojo::Phantom->new(
       base    => $base,
       bind    => \%bind,
       cookies => $t->ua->cookie_jar->all,
@@ -112,7 +112,7 @@ This method tests the javascript behavior of the app via an external L<PhantomJS
 You must install that program and it must be in your C<PATH> in order to use this method.
 
 The author recommends using L<Test::Mojo::WithRoles> to manage the role application.
-The low level interaction is handled by a L<Test::Mojo::Phantom> instance, but for the most part that is transparent to the test method.
+The low level interaction is handled by a L<Mojo::Phantom> instance, but for the most part that is transparent to the test method.
 
 =head1 METHODS
 

@@ -1,4 +1,4 @@
-package Test::Mojo::Phantom;
+package Mojo::Phantom;
 
 use Mojo::Base -base;
 
@@ -15,14 +15,14 @@ use Mojo::URL;
 use JavaScript::Value::Escape;
 use Scalar::Util;
 
-use constant DEBUG => $ENV{TEST_MOJO_PHANTOM_DEBUG};
+use constant DEBUG => $ENV{MOJO_PHANTOM_DEBUG};
 
 has base    => sub { Mojo::URL->new };
 has bind    => sub { {} };
 has cookies => sub { [] };
 has package => 'main';
 has 'setup';
-has sep     => '--__TEST_MOJO_PHANTOM__--';
+has sep     => '--MOJO_PHANTOM_MSG--';
 
 has template => <<'TEMPLATE';
   % my ($self, $url, $js) = @_;
@@ -156,7 +156,7 @@ sub execute_url {
 
 =head1 NAME
 
-Test::Mojo::Phantom - Test your client side code via PhantomJS
+Mojo::Phantom - Interact with your client side code via PhantomJS
 
 =head1 SYNOPSIS
 
@@ -205,7 +205,7 @@ To learn more about using this for testing, see L<Test::Mojo::Role::Phantom/phan
 
 =head1 ATTRIBUTES
 
-L<Test::Mojo::Phantom> inherits the attributes from L<Mojo::Base> and implements the following new ones.
+L<Mojo::Phantom> inherits the attributes from L<Mojo::Base> and implements the following new ones.
 
 =head2 base
 
@@ -236,7 +236,7 @@ An additional string of javascript which is executed after the page object is cr
 =head2 sep
 
 A string used to separate messages from the JS side.
-Defaults to C<--__TEST_MOJO_PHANTOM__-->.
+Defaults to C<--MOJO_PHANTOM_MSG-->.
 
 =head2 template
 
@@ -247,7 +247,7 @@ The default handles much of what this module does, you should be very sure of wh
 
 =head1 METHODS
 
-L<Test::Mojo::Phantom> inherits all methods from L<Mojo::Base> and implements the following new ones.
+L<Mojo::Phantom> inherits all methods from L<Mojo::Base> and implements the following new ones.
 
 =head2 execute_file
 
