@@ -2,9 +2,7 @@ package Test::Mojo::Role::Phantom;
 
 use Role::Tiny;
 
-use Test::More 1.301001_097 ();
-use Test::Stream::Toolset;
-use Test::Stream::Block;
+use Test::More ();
 
 use Mojo::Phantom;
 
@@ -39,28 +37,23 @@ sub phantom_ok {
   };
 
   my $name = $opts->{name} || 'all phantom tests successful';
-  my $ctx = Test::Stream::Toolset::context();
-  my $block = Test::Stream::Block->new(
-    name => $name,
-    caller => [caller(0)],
-    coderef => sub{
-      $ctx->set;
-      Test::More::plan(tests => $opts->{plan}) if $opts->{plan};
-      Mojo::IOLoop->delay(
-        sub { $phantom->execute_url($url, $js, shift->begin) },
-        sub {
-          my ($delay, $err, $status) = @_;
-          if ($status) {
-            my $exit = $status >> 8;
-            my $sig  = $status & 127;
-            my $msg  = $exit ? "status: $exit" : "signal: $sig";
-            Test::More::diag("phantom exitted with $msg");
-          }
-          die $err if $err;
-        },
-      )->catch(sub{ Test::More::fail($_[1]) })->wait;
-    }
-  );
+  my $block = sub {
+    Test::More::plan(tests => $opts->{plan}) if $opts->{plan};
+    Mojo::IOLoop->delay(
+      sub { $phantom->execute_url($url, $js, shift->begin) },
+      sub {
+        my ($delay, $err, $status) = @_;
+        if ($status) {
+          my $exit = $status >> 8;
+          my $sig  = $status & 127;
+          my $msg  = $exit ? "status: $exit" : "signal: $sig";
+          Test::More::diag("phantom exitted with $msg");
+        }
+        die $err if $err;
+      },
+    )->catch(sub{ Test::More::fail($_[1]) })->wait;
+  };
+  local $Test::Builder::Level = $Test::Builder::Level + 1;
   return $t->success(Test::More::subtest($name => $block));
 }
 
@@ -234,7 +227,9 @@ I encourage contribution, whether to this implementation or some other implement
 
 =head1 NOTES
 
-This module requires a VERY modern L<Test::More> because it requires L<Test::Stream>.
+The C<phantom_ok> test itself mimics a C<subtest>.
+While this outer test behaves correctly, individual tests do not report the correct line and file, instead emitting from inside the IOLoop.
+It is hoped that future versions of L<Test::More> will make correct reporting possible, but it is not yet.
 
 =head1 SOURCE REPOSITORY
 
