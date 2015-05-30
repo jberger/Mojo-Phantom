@@ -166,7 +166,9 @@ I encourage contribution, whether to this implementation or some other implement
 
 =head1 NOTES
 
-This module requires a VERY modern L<Test::More> because it requires L<Test::Stream>.
+The C<phantom_ok> test itself mimics a C<subtest>.
+While this outer test behaves correctly, individual tests do not report the correct line and file, instead emitting from inside the IOLoop.
+It is hoped that future versions of L<Test::More> will make correct reporting possible, but it is not yet.
 
 =head1 SOURCE REPOSITORY
 
