@@ -112,6 +112,7 @@ It is created automatically attacted to the L<Mojo::IOLoop/singleton> by running
   $proc->kill
 
 Kills the child process (KILL) and closes the stream.
+Note that since the process might exit before the kill signal is sent, it is not guaranteed that the L</exit_status> will reflect the signal.
 
 =head2 start
 

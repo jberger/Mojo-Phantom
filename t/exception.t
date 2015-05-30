@@ -19,6 +19,7 @@ subtest 'invoke CORE::die' => sub {
   my $proc = $phantom->execute_url('/', <<'  JS', $cb);
     perl('ok', 1, 'dummy test from javascript');
     perl('CORE::die', "argh\n");
+    //while (1) { i++ }
     perl('fail', "don't get here");
   JS
 
@@ -29,7 +30,6 @@ subtest 'invoke CORE::die' => sub {
 
   chomp($error);
   is $error, 'argh', 'got the right error';
-  cmp_ok $status, '!=', 0, 'exit status non-zero';
 };
 
 subtest 'js side error' => sub {
@@ -50,7 +50,6 @@ subtest 'js side error' => sub {
 
   chomp($error);
   like $error, qr/PHANTOM ERROR.*dozNotExistz/, 'got the right error';
-  cmp_ok $status, '!=', 0, 'exit status non-zero';
 };
 
 subtest 'stream exception' => sub {
@@ -69,7 +68,6 @@ subtest 'stream exception' => sub {
 
   chomp($error);
   is $error, 'argh', 'got the right error';
-  cmp_ok $status, '!=', 0, 'exit status non-zero';
 };
 
 done_testing;

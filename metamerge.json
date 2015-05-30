@@ -6,10 +6,10 @@
    },
    "resources" : {
       "repository" : {
-         "url" : "http://github.com/jberger/Test-Mojo-Phantom"
+         "url" : "http://github.com/jberger/Mojo-Phantom"
       },
       "bugtracker" : {
-         "web" : "http://github.com/jberger/Test-Mojo-Phantom/issues"
+         "web" : "http://github.com/jberger/Mojo-Phantom/issues"
       },
       "license" : [ "http://dev.perl.org/licenses/" ]
    }
