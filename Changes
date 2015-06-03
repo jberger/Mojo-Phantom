@@ -1,4 +1,4 @@
-Revision history for Perl module Mojo::IOLoop::ForkCall
+Revision history for Perl module Mojo-Phantom
 
 0.02 2015-05-30
   - Fix Build.PL where phantomjs is missing
