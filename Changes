@@ -1,5 +1,8 @@
 Revision history for Perl module Mojo-Phantom
 
+0.02 2015-07-12
+  - Fix some failing tests on older perls by monkey-patching die into CORE:: if necessary
+
 0.02 2015-05-30
   - Fix Build.PL where phantomjs is missing
 
