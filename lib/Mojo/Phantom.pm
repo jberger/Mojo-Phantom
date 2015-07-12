@@ -16,6 +16,9 @@ use JavaScript::Value::Escape;
 
 use constant DEBUG => $ENV{MOJO_PHANTOM_DEBUG};
 
+use constant CAN_CORE_DIE  => !! CORE->can('die');
+use constant CAN_CORE_WARN => !! CORE->can('warn');
+
 has base    => sub { Mojo::URL->new };
 has bind    => sub { {} };
 has cookies => sub { [] };
@@ -102,6 +105,8 @@ sub execute_file {
     $buffer .= $bytes;
     while ($buffer =~ s/^(.*)\n$sep\n//) {
       my ($function, @args) = @{ Mojo::JSON::decode_json $1 };
+      local *CORE::die  = sub { die  @_ } unless CAN_CORE_DIE;
+      local *CORE::warn = sub { warn @_ } unless CAN_CORE_WARN;
       eval "package $package; no strict 'refs'; &{\$function}(\@args)";
       if ($@) { $error = $@; return $proc->kill }
     }
@@ -240,6 +245,10 @@ Builds the template for PhantomJS to execute and starts it.
 Takes a target url, a string of javascript to be executed in the context that the template provides and a callback.
 By default this is the page context.
 The return value is the same as L</execute_file>.
+
+=head1 NOTES
+
+NOTE that if your Perl version does not provide C<CORE::die> and C<CORE::warn>, they will be monkey-patched into the C<CORE> namespace before executing the javascript.
 
 =head1 SOURCE REPOSITORY
 
