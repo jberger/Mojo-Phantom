@@ -37,8 +37,10 @@ sub phantom_ok {
   };
 
   my $name = $opts->{name} || 'all phantom tests successful';
+  my $subtest = !$opts->{no_subtest};
+
   my $block = sub {
-    Test::More::plan(tests => $opts->{plan}) if $opts->{plan};
+    Test::More::plan(tests => $opts->{plan}) if $opts->{plan} && $subtest;
     Mojo::IOLoop->delay(
       sub { $phantom->execute_url($url, $js, shift->begin) },
       sub {
@@ -54,7 +56,12 @@ sub phantom_ok {
     )->catch(sub{ Test::More::fail($_[1]) })->wait;
   };
   local $Test::Builder::Level = $Test::Builder::Level + 1;
-  return $t->success(Test::More::subtest($name => $block));
+  if ($subtest) {
+      return $t->success(Test::More::subtest($name => $block));
+  } else {
+      $block->();
+      return $t;
+  }
 }
 
 1;
@@ -164,6 +171,10 @@ The name of the subtest
 The number of tests that are expected.
 While not required, this is more useful than most plans in L<Test::More> since the transport of the commands is volatile.
 By specifying a plan in this way, if the process exits (status zero) early or never starts, the test will still fail rather than silently pass assuming there were no tests.
+
+=item no_subtest
+
+Don't use a subtest to run the test. If this option is in use, the plan argument is ignored.
 
 =item package
 
