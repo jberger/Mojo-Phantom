@@ -28,11 +28,12 @@ sub phantom_ok {
     );
 
     Mojo::Phantom->new(
-      base    => $base,
-      bind    => \%bind,
-      cookies => $t->ua->cookie_jar->all,
-      setup   => $opts->{setup},
-      package => $opts->{package} || caller,
+      base      => $base,
+      bind      => \%bind,
+      cookies   => $t->ua->cookie_jar->all,
+      setup     => $opts->{setup},
+      package   => $opts->{package} || caller,
+      arguments => $opts->{phantom_args} // [],
     );
   };
 
@@ -196,6 +197,10 @@ A pass-through option specifying javascript to be run after the page object is c
 =item phantom
 
 If you need even more control, you may pass in an instance of L<Test::Mojo::Phantom> and it will be used.
+
+=item phantom_args
+
+Specifies an array reference of command-line arguments passed directly to the PhantomJS process.
 
 =back
 

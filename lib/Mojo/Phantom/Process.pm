@@ -8,6 +8,7 @@ use Mojo::IOLoop;
 use Mojo::IOLoop::Stream;
 
 has [qw/error exit_status pid stream/];
+has arguments => sub { [] };
 
 sub kill {
   my ($self) = @_;
@@ -22,7 +23,7 @@ sub kill {
 sub start {
   my ($self, $file) = @_;
 
-  my $pid = open my $pipe, '-|', 'phantomjs', "$file";
+  my $pid = open my $pipe, '-|', 'phantomjs', @{ $self->arguments }, "$file";
   die 'Could not spawn' unless defined $pid;
   $self->pid($pid);
   $self->emit(spawn => $pid);
@@ -85,6 +86,13 @@ Emitted just after the child process is spawned.
 Passed the new child pid.
 
 =head1 ATTRIBUTES
+
+=head2 arguments
+
+Holds an array reference of arguments passed directly to the PhantomJS executable when it is run.
+
+  my @phantom_args = ('--proxy=127.0.0.1:8080', '--proxy-type='socks5');
+  my $proc = Mojo::Phantom::Process->new(arguments => \@phantom_args);
 
 =head2 error
 
