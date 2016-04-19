@@ -136,6 +136,10 @@ A pass-through option specifying javascript to be run after the page object is c
 
 If you need even more control, you may pass in an instance of L<Test::Mojo::Phantom> and it will be used.
 
+=item phantom_args
+
+Specifies an array reference of command-line arguments passed directly to the PhantomJS process.
+
 =back
 
 =head1 DESIGN GOALS
