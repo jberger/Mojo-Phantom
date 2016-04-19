@@ -19,6 +19,7 @@ use constant DEBUG => $ENV{MOJO_PHANTOM_DEBUG};
 use constant CAN_CORE_DIE  => !! CORE->can('die');
 use constant CAN_CORE_WARN => !! CORE->can('warn');
 
+has arguments => sub { [] };
 has base    => sub { Mojo::URL->new };
 has bind    => sub { {} };
 has cookies => sub { [] };
@@ -115,7 +116,9 @@ sub execute_file {
   my ($self, $file, $cb) = @_;
   # note that $file might be an object that needs to have a strong reference
 
-  my $proc = Mojo::Phantom::Process->new;
+  my $arguments = $self->arguments // [];
+
+  my $proc = Mojo::Phantom::Process->new(arguments => $arguments);
   $proc->exe($self->exe) if $self->exe;
 
   my $sep = $self->sep;
@@ -211,6 +214,10 @@ Please note that this class is not yet as stable as the public api for the test 
 =head1 ATTRIBUTES
 
 L<Mojo::Phantom> inherits the attributes from L<Mojo::Base> and implements the following new ones.
+
+=head2 arguments
+
+An array reference containing command-line arguments to be passed directly to the PhantomJS process.
 
 =head2 base
 

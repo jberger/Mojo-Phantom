@@ -36,6 +36,7 @@ sub phantom_ok {
       package => $opts->{package} || caller,
       no_exit => $opts->{no_exit},
       note_console => $opts->{note_console} // 1,
+      arguments => $opts->{phantom_args} // [],
     );
   };
 
@@ -209,6 +210,10 @@ Do not automatically call C<phantom.exit()> after the provided JavaScript code. 
 
 Redirect C<console.log> output to TAP as note events.  This is usually helpful, but can be turned off if it becomes too
 verbose.
+
+=item phantom_args
+
+Specifies an array reference of command-line arguments passed directly to the PhantomJS process.
 
 =back
 
