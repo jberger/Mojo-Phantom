@@ -2,7 +2,7 @@ package Mojo::Phantom;
 
 use Mojo::Base -base;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 $VERSION = eval $VERSION;
 
 use Mojo::Phantom::Process;
@@ -166,6 +166,7 @@ sub execute_url {
 
 1;
 
+=encoding utf8
 
 =head1 NAME
 
@@ -313,6 +314,8 @@ Joel Berger, E<lt>joel.a.berger@gmail.comE<gt>
 =head1 CONTRIBUTORS
 
 Graham Ollis (plicease)
+
+Sebastian Paaske Tørholm (Eckankar)
 
 =head1 COPYRIGHT AND LICENSE
 

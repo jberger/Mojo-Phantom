@@ -30,8 +30,3 @@ like($cookies, qr/chocolate_chip=yummy/, 'cookie found in cookie file');
 
 done_testing;
 
-=head1 DESCRIPTION
-
-Verify that arguments are passed correctly to PhantomJS.
-
-=cut
