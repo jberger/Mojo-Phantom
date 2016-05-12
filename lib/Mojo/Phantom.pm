@@ -166,6 +166,7 @@ sub execute_url {
 
 1;
 
+=encoding utf8
 
 =head1 NAME
 
@@ -313,6 +314,8 @@ Joel Berger, E<lt>joel.a.berger@gmail.comE<gt>
 =head1 CONTRIBUTORS
 
 Graham Ollis (plicease)
+
+Sebastian Paaske Tørholm (Eckankar)
 
 =head1 COPYRIGHT AND LICENSE
 

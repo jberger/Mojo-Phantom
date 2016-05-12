@@ -25,7 +25,9 @@ sub kill {
 sub start {
   my ($self, $file) = @_;
 
-  my $pid = open my $pipe, '-|', $self->exe, @{ $self->arguments }, "$file";
+  my @command = ($self->exe, @{ $self->arguments }, "$file");
+  warn 'Spawning: ' . (join ', ', map { "'$_'" } @command) . "\n" if DEBUG;
+  my $pid = open my $pipe, '-|', @command;
   die 'Could not spawn' unless defined $pid;
   $self->pid($pid);
   $self->emit(spawn => $pid);
