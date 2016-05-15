@@ -77,6 +77,11 @@ has template => <<'TEMPLATE';
   // Requst page and inject user-provided javascript
   var page = require('webpage').create();
   page.onError = onError;
+  
+  // redirect browser console log to TAP
+  page.onConsoleMessage = function(msg) {
+    perl.note('js console: ' + msg);
+  };
 
   // Additional setup
   <%= $self->setup || '' %>;
