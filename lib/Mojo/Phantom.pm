@@ -83,6 +83,15 @@ has template => <<'TEMPLATE';
     perl.note('js console: ' + msg);
   };
 
+  // redirect console log to TAP
+  (function() {
+    var old = console.log;
+    console.log = function(msg) {
+      perl.note('phantom console: ' + msg);
+      old.apply(this, Array.prototype.slice.call(arguments));
+    };
+  }());
+
   // Additional setup
   <%= $self->setup || '' %>;
 
