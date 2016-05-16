@@ -1,6 +1,7 @@
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq phantomjs
+install: cpanm --installdeps --with-configure --notest .
 language: perl
 perl:
   - "5.22"
