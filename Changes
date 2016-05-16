@@ -1,5 +1,7 @@
 Revision history for Perl module Mojo-Phantom
 
+0.04
+
 0.03 2015-07-12
   - Fix some failing tests on older perls by monkey-patching die into CORE:: if necessary
 
