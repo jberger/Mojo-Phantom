@@ -35,6 +35,7 @@ sub phantom_ok {
       setup   => $opts->{setup},
       package => $opts->{package} || caller,
       no_exit => $opts->{no_exit},
+      note_console => $opts->{note_console} // 1,
     );
   };
 
@@ -203,6 +204,11 @@ If you need even more control, you may pass in an instance of L<Test::Mojo::Phan
 =item no_exit
 
 Do not automatically call C<phantom.exit()> after the provided JavaScript code.  This is useful when testing asynchronous events.
+
+=item note_console
+
+Redirect C<console.log> output to TAP as note events.  This is usually helpful, but can be turned off if it becomes too
+verbose.
 
 =back
 

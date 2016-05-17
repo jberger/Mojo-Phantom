@@ -47,6 +47,36 @@ is(
   'console log came through as note message',
 );
 
+is(
+  intercept { $t->phantom_ok('main', $js, {plan => 1, note_console => 0}) },
+  array {
+    event Note => sub {
+      call message => 'Subtest: all phantom tests successful';
+    };
+
+    event Subtest => sub {
+      call name => 'all phantom tests successful';
+      call pass => 1;
+      call effective_pass => 1;
+
+      call subevents => array {
+          event Plan => sub {
+            call max => 1;
+          };
+          event Ok => sub {
+            call name => 'one passing test';
+            call pass => 1;
+            call effective_pass => 1;
+          };
+
+          end();
+      };
+    };
+    end();
+  },
+  'console log came through as note message',
+);
+
 
 $js = <<'JS';
   perl('ok', 1, 'one passing test');
@@ -77,6 +107,35 @@ is(
 
           event Note => sub {
             call message => 'phantom console: this is a console message';
+          };
+          end();
+      };
+    };
+    end();
+  },
+  'console log came through as note message',
+);
+
+is(
+  intercept { $t->phantom_ok('main', $js, {plan => 1, note_console => 0}) },
+  array {
+    event Note => sub {
+      call message => 'Subtest: all phantom tests successful';
+    };
+
+    event Subtest => sub {
+      call name => 'all phantom tests successful';
+      call pass => 1;
+      call effective_pass => 1;
+
+      call subevents => array {
+          event Plan => sub {
+            call max => 1;
+          };
+          event Ok => sub {
+            call name => 'one passing test';
+            call pass => 1;
+            call effective_pass => 1;
           };
           end();
       };
