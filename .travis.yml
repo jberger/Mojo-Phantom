@@ -2,8 +2,8 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq phantomjs
 install: 
-  - cpanm --installdeps --with-configure --notest .
-  - "perl -MModule::Build::Tiny -e 1"
+  - cpanm --installdeps --with-develop --with-configure --notest .
+  - mbtiny regenerate
 language: perl
 perl:
   - "5.22"
