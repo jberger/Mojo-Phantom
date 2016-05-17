@@ -9,6 +9,8 @@ use Mojo::IOLoop::Stream;
 
 has [qw/error exit_status pid stream/];
 
+has exe => 'phantomjs';
+
 sub kill {
   my ($self) = @_;
   return unless my $pid = $self->pid;
@@ -22,7 +24,7 @@ sub kill {
 sub start {
   my ($self, $file) = @_;
 
-  my $pid = open my $pipe, '-|', 'phantomjs', "$file";
+  my $pid = open my $pipe, '-|', $self->exe, "$file";
   die 'Could not spawn' unless defined $pid;
   $self->pid($pid);
   $self->emit(spawn => $pid);
@@ -104,6 +106,11 @@ The stream's close event will clear this value once the process has ended.
 
 The instance of L<Mojo::IOLoop::Stream> used to monitor the STDOUT of the external process.
 It is created automatically attacted to the L<Mojo::IOLoop/singleton> by running L</start>.
+
+=head2 exe
+
+The executable name or path to call PhantomJS.  You may substitute a compatible platform, for example using C<casperjs> to use
+CasperJS.
 
 =head1 METHODS
 
