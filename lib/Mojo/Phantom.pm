@@ -26,7 +26,7 @@ has package => 'main';
 has 'setup';
 has sep     => '--MOJO_PHANTOM_MSG--';
 has no_exit => 0;
-has note_console => 1;
+has note_console => 0;
 has 'exe';
 
 has template => <<'TEMPLATE';
@@ -257,8 +257,8 @@ when testing asynchronous events.
 
 =head2 note_console
 
-Redirect C<console.log> output to TAP as note events.  This is usually helpful, but can be turned off if it becomes too
-verbose.
+Redirect C<console.log> output to TAP as note events.  This is usually helpful when writing tests.  The default is
+off for Mojo::Phantom and on for L<Test::Mojo::Role::Phantom>.
 
 =head2 exe
 
