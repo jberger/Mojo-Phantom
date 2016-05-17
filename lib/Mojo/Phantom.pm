@@ -26,6 +26,7 @@ has package => 'main';
 has 'setup';
 has sep     => '--MOJO_PHANTOM_MSG--';
 has no_exit => 0;
+has note_console => 1;
 
 has template => <<'TEMPLATE';
   % my ($self, $url, $js) = @_;
@@ -77,6 +78,24 @@ has template => <<'TEMPLATE';
   // Requst page and inject user-provided javascript
   var page = require('webpage').create();
   page.onError = onError;
+
+  % if($self->note_console) {
+  
+    // redirect browser console log to TAP
+    page.onConsoleMessage = function(msg) {
+      perl.note('js console: ' + msg);
+    };
+
+    // redirect console log to TAP
+    (function() {
+      var old = console.log;
+      console.log = function(msg) {
+        perl.note('phantom console: ' + msg);
+        old.apply(this, Array.prototype.slice.call(arguments));
+      };
+    }());
+  
+  % }
 
   // Additional setup
   <%= $self->setup || '' %>;
@@ -233,6 +252,11 @@ The default handles much of what this module does, you should be very sure of wh
 
 Do not automatically call C<phantom.exit()> after the provided JavaScript code.  This is useful
 when testing asynchronous events.
+
+=head2 note_console
+
+Redirect C<console.log> output to TAP as note events.  This is usually helpful, but can be turned off if it becomes too
+verbose.
 
 =head1 METHODS
 
