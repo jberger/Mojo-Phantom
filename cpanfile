@@ -10,4 +10,5 @@ configure_requires 'IPC::Cmd';
 configure_requires 'Module::Build::Tiny';
 
 author_requires 'App::ModuleBuildTiny';
+author_requires 'Module::Metadata', '1.000009';
 
