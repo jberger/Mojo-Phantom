@@ -33,6 +33,7 @@ sub phantom_ok {
       cookies => $t->ua->cookie_jar->all,
       setup   => $opts->{setup},
       package => $opts->{package} || caller,
+      no_exit => $opts->{no_exit},
     );
   };
 
@@ -196,6 +197,10 @@ A pass-through option specifying javascript to be run after the page object is c
 =item phantom
 
 If you need even more control, you may pass in an instance of L<Test::Mojo::Phantom> and it will be used.
+
+=item no_exit
+
+Do not automatically call C<phantom.exit()> after the provided JavaScript code.  This is useful when testing asynchronous events.
 
 =back
 

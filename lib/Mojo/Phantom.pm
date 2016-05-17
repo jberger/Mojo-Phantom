@@ -25,6 +25,7 @@ has cookies => sub { [] };
 has package => 'main';
 has 'setup';
 has sep     => '--MOJO_PHANTOM_MSG--';
+has no_exit => 0;
 
 has template => <<'TEMPLATE';
   % my ($self, $url, $js) = @_;
@@ -84,7 +85,9 @@ has template => <<'TEMPLATE';
 
     <%= $js %>;
 
-    phantom.exit();
+    % unless($self->no_exit) {
+      phantom.exit();
+    % }
   });
 TEMPLATE
 
@@ -225,6 +228,11 @@ A string which is used to build a L<Mojo::Template> object.
 It takes as its arguments the instance, a target url, and a string of javascript to be evaluated.
 
 The default handles much of what this module does, you should be very sure of why you need to change this before doing so.
+
+=head2 no_exit
+
+Do not automatically call C<phantom.exit()> after the provided JavaScript code.  This is useful
+when testing asynchronous events.
 
 =head1 METHODS
 
