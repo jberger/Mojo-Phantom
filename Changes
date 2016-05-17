@@ -1,6 +1,9 @@
 Revision history for Perl module Mojo-Phantom
 
 0.04
+  - added no_exit option (plicease)
+  - added console output redirection to TAP stream as note scoped by note_console option (plicease)
+  - explicitly depend on Test2 for our tests, not yet using Test2 directly though
 
 0.03 2015-07-12
   - Fix some failing tests on older perls by monkey-patching die into CORE:: if necessary

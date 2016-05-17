@@ -290,9 +290,13 @@ L<http://github.com/jberger/Test-Mojo-Phantom>
 
 Joel Berger, E<lt>joel.a.berger@gmail.comE<gt>
 
+=head1 CONTRIBUTORS
+
+Graham Ollis (plicease)
+
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2015 by Joel Berger
+Copyright (C) 2015 by L</AUTHOR> and L</CONTRIBUTORS>.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
