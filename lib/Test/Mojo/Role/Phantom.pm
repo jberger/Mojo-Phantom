@@ -23,6 +23,7 @@ sub phantom_ok {
       ok    => 'Test::More::ok',
       is    => 'Test::More::is',
       diag  => 'Test::More::diag',
+      note  => 'Test::More::note',
       fail  => 'Test::More::fail',
       %{ $opts->{bind} || {} },
     );
@@ -179,6 +180,7 @@ The pairs passed are merged into
     ok    => 'Test::More::ok',
     is    => 'Test::More::is',
     diag  => 'Test::More::diag',
+    note  => 'Test::More::note',
     fail  => 'Test::More::fail',
   }
 
