@@ -265,6 +265,9 @@ off for Mojo::Phantom and on for L<Test::Mojo::Role::Phantom>.
 The executable name or path to call PhantomJS.  You may substitute a compatible platform, for example using C<casperjs> to use
 CasperJS.
 
+Note that while you can use this to specify the full path of an alternate version of PhantomJS, during the install of
+Mojo::Phantom you I<must> have phantomjs in your C<PATH> for configuration and testing.
+
 =head1 METHODS
 
 L<Mojo::Phantom> inherits all methods from L<Mojo::Base> and implements the following new ones.
