@@ -27,6 +27,7 @@ has 'setup';
 has sep     => '--MOJO_PHANTOM_MSG--';
 has no_exit => 0;
 has note_console => 1;
+has 'exe';
 
 has template => <<'TEMPLATE';
   % my ($self, $url, $js) = @_;
@@ -115,6 +116,7 @@ sub execute_file {
   # note that $file might be an object that needs to have a strong reference
 
   my $proc = Mojo::Phantom::Process->new;
+  $proc->exe($self->exe) if $self->exe;
 
   my $sep = $self->sep;
   my $package = $self->package;
@@ -258,6 +260,11 @@ when testing asynchronous events.
 Redirect C<console.log> output to TAP as note events.  This is usually helpful, but can be turned off if it becomes too
 verbose.
 
+=head2 exe
+
+The executable name or path to call PhantomJS.  You may substitute a compatible platform, for example using C<casperjs> to use
+CasperJS.
+
 =head1 METHODS
 
 L<Mojo::Phantom> inherits all methods from L<Mojo::Base> and implements the following new ones.
@@ -277,6 +284,9 @@ Builds the template for PhantomJS to execute and starts it.
 Takes a target url, a string of javascript to be executed in the context that the template provides and a callback.
 By default this is the page context.
 The return value is the same as L</execute_file>.
+
+The executable name or path to call PhantomJS.  You may substitute a compatible platform, for example using C<casperjs> to use
+CasperJS.
 
 =head1 NOTES
 
