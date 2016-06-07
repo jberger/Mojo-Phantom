@@ -1,5 +1,8 @@
 Revision history for Perl module Mojo-Phantom
 
+0.05 2016-06-07
+  - reinstate correct Build.PL
+
 0.04 2016-06-07
   - added ability to use alternate executable via exe attribute (plicease)
   - added no_exit option (plicease)
