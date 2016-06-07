@@ -1,6 +1,6 @@
 Revision history for Perl module Mojo-Phantom
 
-0.04
+0.04 2016-06-07
   - added ability to use alternate executable via exe attribute (plicease)
   - added no_exit option (plicease)
   - added console output redirection to TAP stream as note scoped by note_console option (plicease)
