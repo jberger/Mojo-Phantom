@@ -117,6 +117,7 @@ The pairs passed are merged into
     ok    => 'Test::More::ok',
     is    => 'Test::More::is',
     diag  => 'Test::More::diag',
+    note  => 'Test::More::note',
     fail  => 'Test::More::fail',
   }
 
@@ -134,7 +135,16 @@ A pass-through option specifying javascript to be run after the page object is c
 
 =item phantom
 
-If you need even more control, you may pass in an instance of L<Test::Mojo::Phantom> and it will be used.
+If you need even more control, you may pass in an instance of L<Mojo::Phantom> and it will be used.
+
+=item no_exit
+
+Do not automatically call C<phantom.exit()> after the provided JavaScript code.  This is useful when testing asynchronous events.
+
+=item note_console
+
+Redirect C<console.log> output to TAP as note events.  This is usually helpful, but can be turned off if it becomes too
+verbose.
 
 =back
 
