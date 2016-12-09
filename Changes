@@ -1,5 +1,8 @@
 Revision history for Perl module Mojo-Phantom
 
+0.07 2016-12-08
+  - reinstate correct Build.PL (yes again)
+
 0.06 2016-12-08
   - Add ability to pass command line arguments to the phantom process (Eckankar)
 

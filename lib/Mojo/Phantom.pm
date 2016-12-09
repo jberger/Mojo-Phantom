@@ -2,7 +2,7 @@ package Mojo::Phantom;
 
 use Mojo::Base -base;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 $VERSION = eval $VERSION;
 
 use Mojo::Phantom::Process;
