@@ -37,6 +37,7 @@ sub phantom_ok {
       no_exit => $opts->{no_exit},
       note_console => $opts->{note_console} // 1,
       arguments => $opts->{phantom_args} // [],
+      exe => $opts->{exe},
     );
   };
 
@@ -214,6 +215,13 @@ verbose.
 =item phantom_args
 
 Specifies an array reference of command-line arguments passed directly to the PhantomJS process.
+
+=back
+
+=item exe
+
+The executable name or path to call PhantomJS.  You may substitute a compatible platform, for example using C<casperjs> to use
+CasperJS.
 
 =back
 

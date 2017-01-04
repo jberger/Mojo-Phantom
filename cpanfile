@@ -5,6 +5,7 @@ requires 'Test2', '1.302015'; # Test::Builder + Test2 that works together
 requires 'Test2::Suite';
 requires 'Test::More';
 requires 'Test::Mojo::WithRoles';
+requires 'Mock::MonkeyPatch';
 
 configure_requires 'IPC::Cmd';
 configure_requires 'Module::Build::Tiny';
