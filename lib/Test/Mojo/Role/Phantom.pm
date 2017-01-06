@@ -41,11 +41,17 @@ sub phantom_ok {
   };
 
   my $name = $opts->{name} || 'all phantom tests successful';
+  my $timeout = $opts->{timeout} // 15;
   my $block = sub {
     Test::More::plan(tests => $opts->{plan}) if $opts->{plan};
+    my $timerid;
     Mojo::IOLoop->delay(
-      sub { $phantom->execute_url($url, $js, shift->begin) },
       sub {
+        my $proc = $phantom->execute_url($url, $js, shift->begin);
+        $timerid = Mojo::IOLoop->timer( $timeout => sub { Test::More::fail("Aborting test due to timeout"); $proc->kill } ) if $timeout;
+      },
+      sub {
+        Mojo::IOLoop->remove($timerid) if $timerid;
         my ($delay, $err, $status) = @_;
         if ($status) {
           my $exit = $status >> 8;
@@ -214,6 +220,10 @@ verbose.
 =item phantom_args
 
 Specifies an array reference of command-line arguments passed directly to the PhantomJS process.
+
+=item timeout
+
+Specifies how long phantomjs can run before it is stopped forcefully. Default is 15 seconds. Setting this parameter to zero will disable the timeout.
 
 =back
 

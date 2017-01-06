@@ -12,7 +12,7 @@ my $js = <<'JS';
   setTimeout(function() { perl('ok', 1, 'ok from timeout'); phantom.exit(0); }, 15500 );
 JS
 
-$t->phantom_ok('main', $js, { plan => 2, no_exit => 1 });
+$t->phantom_ok('main', $js, { plan => 2, no_exit => 1, timeout => 20 });
 
 done_testing;
 
