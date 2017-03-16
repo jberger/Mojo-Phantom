@@ -1,5 +1,8 @@
 Revision history for Perl module Mojo-Phantom
 
+0.09 2016-03-15
+  - reinstate correct Build.PL (really, again)
+
 0.08 2016-03-15
   - Fix use of deprecated Mojo::Util functions
     - Bump Mojolicious dependency to 7.15
