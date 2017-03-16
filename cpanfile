@@ -1,4 +1,4 @@
-requires 'Mojolicious', '6.0'; # cookie_jar->all returns arrayref
+requires 'Mojolicious', '7.15'; # Mojo::File
 requires 'JavaScript::Value::Escape';
 requires 'Role::Tiny';
 requires 'Test2', '1.302015'; # Test::Builder + Test2 that works together

@@ -2,13 +2,12 @@ package Mojo::Phantom;
 
 use Mojo::Base -base;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 $VERSION = eval $VERSION;
 
 use Mojo::Phantom::Process;
 
-use File::Temp ();
-use Mojo::Util;
+use Mojo::File;
 use Mojo::JSON;
 use Mojo::Template;
 use Mojo::URL;
@@ -82,7 +81,7 @@ has template => <<'TEMPLATE';
   page.onError = onError;
 
   % if($self->note_console) {
-  
+
     // redirect browser console log to TAP
     page.onConsoleMessage = function(msg) {
       perl.note('js console: ' + msg);
@@ -96,7 +95,7 @@ has template => <<'TEMPLATE';
         old.apply(this, Array.prototype.slice.call(arguments));
       };
     }());
-  
+
   % }
 
   // Additional setup
@@ -158,8 +157,7 @@ sub execute_url {
   die $js if ref $js; # Mojo::Template returns Mojo::Exception objects on failure
 
   warn "\nPerl >>>> Phantom:\n$js\n" if DEBUG;
-  my $tmp = File::Temp->new(SUFFIX => '.js');
-  Mojo::Util::spurt($js => "$tmp");
+  my $tmp = Mojo::File::tempfile(SUFFIX => '.js')->spurt($js);
 
   return $self->execute_file($tmp, $cb);
 }

@@ -10,7 +10,7 @@ use Test::More;
 use Test::Mojo::WithRoles qw/Phantom/;
 
 use File::Temp ();
-use Mojo::Util qw(slurp);
+use Mojo::File qw(tempfile);
 
 my $t = Test::Mojo::WithRoles->new;
 
@@ -19,12 +19,12 @@ my $js = <<'JS';
     perl.is(phantom.cookies.length, 1, "cookie has been set");
 JS
 
-my $cookie_file = File::Temp->new();
+my $cookie_file = tempfile();
 my $options = { phantom_args => ["--cookies-file=$cookie_file"], plan => 2 };
 
 $t->phantom_ok('/', $js, $options);
 
-my $cookies = slurp $cookie_file;
+my $cookies = $cookie_file->slurp;
 
 like($cookies, qr/chocolate_chip=yummy/, 'cookie found in cookie file');
 
