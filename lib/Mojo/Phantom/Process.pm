@@ -32,7 +32,7 @@ sub start {
   $self->pid($pid);
   $self->emit(spawn => $pid);
 
-  my $stream = Mojo::IOLoop::Stream->new($pipe);
+  my $stream = Mojo::IOLoop::Stream->new($pipe)->timeout(0);
   my $id = Mojo::IOLoop->stream($stream);
   $self->stream($stream);
   $stream->on(error => sub { $self->error($_[1])->kill });
